@@ -6,8 +6,8 @@ exporting a schema visualization. Must install django-extensions and pygraphviz 
 then run:
 
 ```
-python manage.py graph_models --output=media/models-schema.svg dj_hetmech
-python manage.py graph_models --output=media/models-schema.png dj_hetmech
+python manage.py graph_models --disable-sort-fields --output=media/models-schema.svg dj_hetmech
+python manage.py graph_models --disable-sort-fields --output=media/models-schema.png dj_hetmech
 ```
 
 References:
