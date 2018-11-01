@@ -15,13 +15,14 @@ References:
   https://docs.djangoproject.com/en/2.1/ref/models/options/
 """
 
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 
 
 class Metanode(models.Model):
     identifier = models.CharField(primary_key=True, max_length=50)
     abbreviation = models.CharField(max_length=10)
-
+    n_nodes = models.PositiveIntegerField()
 
 class Node(models.Model):
     metanode = models.ForeignKey(to='Metanode', on_delete=models.PROTECT)
@@ -32,6 +33,7 @@ class Node(models.Model):
     ])
     name = models.CharField(max_length=200)
     url = models.URLField(blank=True)
+    data = JSONField()
 
     class Meta:
         unique_together = ('metanode', 'identifier')
@@ -44,12 +46,20 @@ class Metapath(models.Model):
     source = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_source')
     target = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_target')
     length = models.PositiveSmallIntegerField()
+    path_count_density = models.FloatField()
+    path_count_mean = models.FloatField()
+    path_count_max = models.PositiveIntegerField()
+    dwpc_raw_mean = models.FloatField()
 
 
 class DegreeGroupedPermutation(models.Model):
     metapath = models.ForeignKey(to='Metapath', on_delete=models.PROTECT)
     source_degree = models.PositiveIntegerField()
     target_degree = models.PositiveIntegerField()
+    n_dwpcs = models.PositiveIntegerField()
+    n_nonzero_dwpcs = models.PositiveIntegerField()
+    nonzero_mean = models.FloatField()
+    nonzero_sd = models.FloatField()
 
     class Meta:
         unique_together = ('metapath', 'source_degree', 'target_degree')
