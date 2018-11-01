@@ -85,8 +85,8 @@
 </g>
 <!-- dj_hetmech_models_Node&#45;&gt;dj_hetmech_models_Metanode -->
 <g id="edge1" class="edge"><title>dj_hetmech_models_Node&#45;&gt;dj_hetmech_models_Metanode</title>
-<path fill="none" stroke="black" d="M113.87,-120.34C118.39,-106.72 124.69,-93.128 133.5,-82 138.78,-75.321 145.25,-69.383 152.23,-64.149"/>
-<ellipse fill="black" stroke="black" cx="112.584" cy="-124.526" rx="4.00001" ry="4.00001"/>
+<path fill="none" stroke="black" d="M113.868,-120.342C118.386,-106.717 124.694,-93.1277 133.5,-82 138.785,-75.3215 145.248,-69.3825 152.227,-64.149"/>
+<ellipse fill="black" stroke="black" cx="112.583" cy="-124.526" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="165" y="-84.6" font-family="Helvetica,sans-Serif" font-size="8.00">metanode (node)</text>
 </g>
 <!-- dj_hetmech_models_Metapath -->
@@ -158,14 +158,14 @@
 </g>
 <!-- dj_hetmech_models_Metapath&#45;&gt;dj_hetmech_models_Metanode -->
 <g id="edge2" class="edge"><title>dj_hetmech_models_Metapath&#45;&gt;dj_hetmech_models_Metanode</title>
-<path fill="none" stroke="black" d="M225.71,-102.06C223.43,-98.476 221.35,-94.789 219.5,-91 215.52,-82.856 214.22,-73.269 214.2,-64.261"/>
-<ellipse fill="black" stroke="black" cx="228.066" cy="-105.515" rx="4.00002" ry="4.00002"/>
+<path fill="none" stroke="black" d="M225.711,-102.058C223.433,-98.4755 221.35,-94.7887 219.5,-91 215.522,-82.8556 214.218,-73.2691 214.199,-64.2612"/>
+<ellipse fill="black" stroke="black" cx="228.069" cy="-105.514" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="267" y="-84.6" font-family="Helvetica,sans-Serif" font-size="8.00">source (metapath_source)</text>
 </g>
 <!-- dj_hetmech_models_Metapath&#45;&gt;dj_hetmech_models_Metanode -->
 <g id="edge3" class="edge"><title>dj_hetmech_models_Metapath&#45;&gt;dj_hetmech_models_Metanode</title>
-<path fill="none" stroke="black" d="M325.5,-101.26C322.59,-94.375 318.97,-87.835 314.5,-82 309.26,-75.169 302.81,-69.211 295.74,-64.033"/>
-<ellipse fill="black" stroke="black" cx="326.965" cy="-105.102" rx="4.00001" ry="4.00001"/>
+<path fill="none" stroke="black" d="M325.498,-101.257C322.586,-94.3747 318.974,-87.8346 314.5,-82 309.262,-75.1693 302.807,-69.2113 295.742,-64.0329"/>
+<ellipse fill="black" stroke="black" cx="326.965" cy="-105.104" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="364" y="-84.6" font-family="Helvetica,sans-Serif" font-size="8.00">target (metapath_target)</text>
 </g>
 <!-- dj_hetmech_models_DegreeGroupedPermutation -->
@@ -225,8 +225,8 @@
 </g>
 <!-- dj_hetmech_models_DegreeGroupedPermutation&#45;&gt;dj_hetmech_models_Metapath -->
 <g id="edge4" class="edge"><title>dj_hetmech_models_DegreeGroupedPermutation&#45;&gt;dj_hetmech_models_Metapath</title>
-<path fill="none" stroke="black" d="M365.33,-300.97C362.25,-288.87 359.05,-276.27 355.95,-264.05"/>
-<ellipse fill="black" stroke="black" cx="366.344" cy="-304.954" rx="4.00001" ry="4.00001"/>
+<path fill="none" stroke="black" d="M365.327,-300.967C362.254,-288.871 359.053,-276.271 355.949,-264.053"/>
+<ellipse fill="black" stroke="black" cx="366.34" cy="-304.957" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="432" y="-284.6" font-family="Helvetica,sans-Serif" font-size="8.00">metapath (degreegroupedpermutation)</text>
 </g>
 <!-- dj_hetmech_models_PathCount -->
@@ -279,21 +279,21 @@
 <text text-anchor="start" x="159.5" y="-325.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
 <!-- dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node -->
-<g id="edge5" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node</title>
-<path fill="none" stroke="black" d="M66.546,-308.94C62.614,-303.24 59.187,-297.25 56.5,-291 50.014,-275.92 52.652,-259.66 59.154,-244.6"/>
-<ellipse fill="black" stroke="black" cx="69.0064" cy="-312.28" rx="4.00002" ry="4.00002"/>
+<g id="edge6" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node</title>
+<path fill="none" stroke="black" d="M66.5456,-308.942C62.614,-303.241 59.1868,-297.248 56.5,-291 50.0136,-275.917 52.6524,-259.662 59.1537,-244.604"/>
+<ellipse fill="black" stroke="black" cx="69.0048" cy="-312.277" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="95" y="-284.6" font-family="Helvetica,sans-Serif" font-size="8.00">source (path_source)</text>
 </g>
 <!-- dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node -->
-<g id="edge6" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node</title>
-<path fill="none" stroke="black" d="M137.71,-307.13C136.59,-298.63 135.21,-290.08 133.5,-282 130.91,-269.75 127.31,-256.86 123.46,-244.68"/>
-<ellipse fill="black" stroke="black" cx="138.22" cy="-311.27" rx="4.00001" ry="4.00001"/>
+<g id="edge7" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Node</title>
+<path fill="none" stroke="black" d="M137.713,-307.13C136.589,-298.632 135.205,-290.078 133.5,-282 130.914,-269.752 127.307,-256.862 123.464,-244.676"/>
+<ellipse fill="black" stroke="black" cx="138.223" cy="-311.273" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="171" y="-284.6" font-family="Helvetica,sans-Serif" font-size="8.00">target (path_target)</text>
 </g>
 <!-- dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Metapath -->
-<g id="edge7" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Metapath</title>
-<path fill="none" stroke="black" d="M208.35,-309.71C223.73,-295.04 240.28,-279.26 256.2,-264.07"/>
-<ellipse fill="black" stroke="black" cx="205.187" cy="-312.722" rx="4.00002" ry="4.00002"/>
+<g id="edge5" class="edge"><title>dj_hetmech_models_PathCount&#45;&gt;dj_hetmech_models_Metapath</title>
+<path fill="none" stroke="black" d="M208.348,-309.707C223.727,-295.041 240.276,-279.26 256.204,-264.071"/>
+<ellipse fill="black" stroke="black" cx="205.184" cy="-312.724" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="273.5" y="-284.6" font-family="Helvetica,sans-Serif" font-size="8.00">metapath (pathcount)</text>
 </g>
 </g>
