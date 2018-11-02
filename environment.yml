@@ -4,10 +4,11 @@ channels:
 dependencies:
   - conda-forge::django-extensions=2.1.3
   - conda-forge::django=2.1.3
+  - conda-forge::graphviz=2.38.0
   - conda-forge::ipykernel=5.1.0
   - conda-forge::pandas=0.23.4
   - conda-forge::psycopg2=2.7.5
-  - conda-forge::pydotplus=2.0.2
+  - conda-forge::pydot=1.2.4
   - conda-forge::python=3.7.0
   - conda-forge::requests=2.20.0
   - pip:
