@@ -1,3 +1,9 @@
-*~
+# Database files
+dj_hetmech_app/migrations
 db.sqlite3
+
+# Python
 __pycache__
+
+# System files
+*~
