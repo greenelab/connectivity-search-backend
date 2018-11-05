@@ -1,8 +1,8 @@
 """
 ```
-python manage.py makemigrations dj_hetmech
-python manage.py migrate dj_hetmech
-# python manage.py syncdata
+python manage.py makemigrations
+python manage.py migrate
+python manage.py flush --no-input
 python manage.py populate_database
 ```
 """
@@ -13,7 +13,7 @@ from django.core.management.base import BaseCommand
 import hetio.readwrite
 import pandas
 
-import dj_hetmech.models as hetmech_models
+import dj_hetmech_app.models as hetmech_models
 
 
 class Command(BaseCommand):
@@ -43,7 +43,7 @@ class Command(BaseCommand):
         nodes = sorted(self._hetionet_graph.get_nodes())
         for node in nodes:
             hetmech_models.Node.objects.create(
-                metanode=node.kind.identifier,
+                metanode=node.metanode.identifier,
                 identifier=str(node.identifier),
                 identifier_type=node.identifier.__class__.__name__,
                 name=node.name,
