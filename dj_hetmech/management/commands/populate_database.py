@@ -12,7 +12,7 @@ class Command(BaseCommand):
     help = 'Populate the database with Hetionet information'
 
     @property
-    @functools.lru_cache
+    @functools.lru_cache()
     def _hetionet_graph(self):
         repo = 'https://github.com/hetio/hetionet'
         commit = '23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a'
@@ -23,11 +23,11 @@ class Command(BaseCommand):
     def _populate_metanode_table(self):
         url = 'https://github.com/hetio/hetionet/raw/23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a/describe/nodes/metanodes.tsv'
         metanode_df = pandas.read_table(url).sort_values('metanode')
-        for i, row in metanode_df.itertuples():
+        for row in metanode_df.itertuples():
             hetmech_models.Metanode.objects.create(
                 identifier=row.metanode,
                 abbreviation=row.abbreviation,
-                n_nodes=row.n_nodes,
+                n_nodes=row.nodes,
             )
 
     def _populate_node_table(self):
