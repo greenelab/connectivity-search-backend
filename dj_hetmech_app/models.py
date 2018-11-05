@@ -24,6 +24,7 @@ class Metanode(models.Model):
     abbreviation = models.CharField(max_length=10)
     n_nodes = models.PositiveIntegerField()
 
+
 class Node(models.Model):
     metanode = models.ForeignKey(to='Metanode', on_delete=models.PROTECT)
     identifier = models.CharField(max_length=50)
