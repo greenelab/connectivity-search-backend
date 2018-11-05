@@ -39,6 +39,30 @@ class Command(BaseCommand):
                 n_nodes=row.nodes,
             )
 
+    def _populate_metapath_table(self):
+        repo = 'https://github.com/greenelab/hetmech'
+        commit = '34e95b9f72f47cdeba3d51622bee31f79e9a4cb8'
+        path = 'explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv'
+        url = f'{repo}/raw/{commit}/{path}'
+        metapath_df = pandas.read_table(url)
+        metagraph = self._hetionet_graph.metagraph
+        objs = list()
+        for row in metapath_df.itertuples():
+            metapath = metagraph.metapath_from_abbrev(row.metapath)
+            objs.append(hetmech_models.Metapath(
+                abbreviation=metapath.get_abbrev(),
+                verbose=str(metapath),
+                verbose_pretty=metapath.get_unicode_str(),
+                source=,
+                target=,
+                length=len(metapath),
+                path_count_density=row.pc_density,
+                path_count_mean=row.pc_mean,
+                path_count_max=row.pc_max,
+                dwpc_raw_mean=,
+            ))
+        hetmech_models.Metapath.objects.bulk_create(objs)
+
     def _populate_node_table(self):
         nodes = sorted(self._hetionet_graph.get_nodes())
         objs = list()
@@ -55,4 +79,5 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self._populate_metanode_table()
+        self._populate_metapath_table()
         self._populate_node_table()
