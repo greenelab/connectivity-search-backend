@@ -1,3 +1,12 @@
+"""
+```
+python manage.py makemigrations dj_hetmech
+python manage.py migrate dj_hetmech
+# python manage.py syncdata
+python manage.py populate_database
+```
+"""
+
 import functools
 
 from django.core.management.base import BaseCommand
