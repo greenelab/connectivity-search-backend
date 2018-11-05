@@ -43,7 +43,7 @@ class Command(BaseCommand):
         nodes = sorted(self._hetionet_graph.get_nodes())
         for node in nodes:
             hetmech_models.Node.objects.create(
-                metanode=node.metanode.identifier,
+                metanode=hetmech_models.Metanode.objects.get(identifier=node.metanode.identifier),
                 identifier=str(node.identifier),
                 identifier_type=node.identifier.__class__.__name__,
                 name=node.name,
