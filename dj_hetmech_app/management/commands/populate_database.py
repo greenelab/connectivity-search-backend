@@ -41,15 +41,17 @@ class Command(BaseCommand):
 
     def _populate_node_table(self):
         nodes = sorted(self._hetionet_graph.get_nodes())
+        objs = list()
         for node in nodes:
-            hetmech_models.Node.objects.create(
+            objs.append(hetmech_models.Node(
                 metanode=hetmech_models.Metanode.objects.get(identifier=node.metanode.identifier),
                 identifier=str(node.identifier),
                 identifier_type=node.identifier.__class__.__name__,
                 name=node.name,
                 url=node.data.get('url', ''),
                 data=node.data,
-            )
+            ))
+        hetmech_models.Node.objects.bulk_create(objs)
 
     def handle(self, *args, **options):
         self._populate_metanode_table()
