@@ -42,8 +42,7 @@ class Node(models.Model):
 
 class Metapath(models.Model):
     abbreviation = models.CharField(primary_key=True, max_length=20)
-    verbose = models.CharField(max_length=200)
-    verbose_pretty = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     source = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_source')
     target = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_target')
     length = models.PositiveSmallIntegerField()

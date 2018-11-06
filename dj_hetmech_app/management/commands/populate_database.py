@@ -59,9 +59,8 @@ class Command(BaseCommand):
         for row in metapath_df.itertuples():
             metapath = metagraph.metapath_from_abbrev(row.metapath)
             objs.append(hetmech_models.Metapath(
-                abbreviation=repr(metapath),
-                verbose=str(metapath),
-                verbose_pretty=metapath.get_unicode_str(),
+                abbreviation=metapath.abbrev,
+                name=metapath.get_unicode_str(),
                 source=self._get_metanode(metapath.source().identifier),
                 target=self._get_metanode(metapath.target().identifier),
                 length=len(metapath),

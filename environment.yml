@@ -12,5 +12,5 @@ dependencies:
   - conda-forge::python=3.7.0
   - conda-forge::requests=2.20.0
   - pip:
-    - git+https://github.com/hetio/hetio@ae2d0bce46e7137ae8812e99ce0e8301f8b7fa53
+    - git+https://github.com/hetio/hetio@1a1da50159f5b01f7ef3490969c7a55f346fbfd5
     - neo4j-driver==1.7.0
