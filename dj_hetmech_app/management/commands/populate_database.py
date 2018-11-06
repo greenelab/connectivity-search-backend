@@ -29,6 +29,13 @@ class Command(BaseCommand):
         url = f'{repo}/raw/{commit}/{path}'
         return hetio.readwrite.read_graph(url)
 
+    @functools.lru_cache()
+    def _get_metanode(self, identifier):
+        """
+        Return the Django metanode object.
+        """
+        return hetmech_models.Metanode.objects.get(identifier=identifier)
+
     def _populate_metanode_table(self):
         url = 'https://github.com/hetio/hetionet/raw/23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a/describe/nodes/metanodes.tsv'
         metanode_df = pandas.read_table(url).sort_values('metanode')
@@ -44,22 +51,24 @@ class Command(BaseCommand):
         commit = '34e95b9f72f47cdeba3d51622bee31f79e9a4cb8'
         path = 'explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv'
         url = f'{repo}/raw/{commit}/{path}'
-        metapath_df = pandas.read_table(url)
+        metapath_df = pandas.read_table(url).rename(columns={
+            'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
+        })
         metagraph = self._hetionet_graph.metagraph
         objs = list()
         for row in metapath_df.itertuples():
             metapath = metagraph.metapath_from_abbrev(row.metapath)
             objs.append(hetmech_models.Metapath(
-                abbreviation=metapath.get_abbrev(),
+                abbreviation=repr(metapath),
                 verbose=str(metapath),
                 verbose_pretty=metapath.get_unicode_str(),
-                source=,
-                target=,
+                source=self._get_metanode(metapath.source().identifier),
+                target=self._get_metanode(metapath.target().identifier),
                 length=len(metapath),
                 path_count_density=row.pc_density,
                 path_count_mean=row.pc_mean,
                 path_count_max=row.pc_max,
-                dwpc_raw_mean=,
+                dwpc_raw_mean=row.dwpc_raw_mean,
             ))
         hetmech_models.Metapath.objects.bulk_create(objs)
 
@@ -68,7 +77,7 @@ class Command(BaseCommand):
         objs = list()
         for node in nodes:
             objs.append(hetmech_models.Node(
-                metanode=hetmech_models.Metanode.objects.get(identifier=node.metanode.identifier),
+                metanode=self._get_metanode(node.metanode.identifier),
                 identifier=str(node.identifier),
                 identifier_type=node.identifier.__class__.__name__,
                 name=node.name,
