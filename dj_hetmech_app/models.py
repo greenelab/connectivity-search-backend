@@ -6,8 +6,8 @@ exporting a schema visualization. Must install django-extensions and pygraphviz 
 then run:
 
 ```
-python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.svg dj_hetmech
-python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.png dj_hetmech
+python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.svg dj_hetmech_app
+python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.png dj_hetmech_app
 ```
 
 References:
@@ -23,6 +23,7 @@ class Metanode(models.Model):
     identifier = models.CharField(primary_key=True, max_length=50)
     abbreviation = models.CharField(max_length=10)
     n_nodes = models.PositiveIntegerField()
+
 
 class Node(models.Model):
     metanode = models.ForeignKey(to='Metanode', on_delete=models.PROTECT)
@@ -41,8 +42,7 @@ class Node(models.Model):
 
 class Metapath(models.Model):
     abbreviation = models.CharField(primary_key=True, max_length=20)
-    verbose = models.CharField(max_length=200)
-    verbose_pretty = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)
     source = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_source')
     target = models.ForeignKey(to='Metanode', on_delete=models.PROTECT, related_name='metapath_target')
     length = models.PositiveSmallIntegerField()
