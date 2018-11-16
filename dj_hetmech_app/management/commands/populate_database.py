@@ -85,7 +85,34 @@ class Command(BaseCommand):
             ))
         hetmech_models.Node.objects.bulk_create(objs)
 
+    def _populate_degree_grouped_permutation_table(self):
+        import zipfile
+        filename = 'degree-grouped-perms_length-1_damping-0.5.zip'
+        path = self.zenodo_download('1435834', filename)
+        with zipfile.ZipFile(path) as zip_file:
+            namelist = zip_file.namelist()
+
     def handle(self, *args, **options):
         self._populate_metanode_table()
         self._populate_metapath_table()
         self._populate_node_table()
+
+    def zenodo_download(self, record_id, filename):
+        """
+        Download a file from a Zenodo record and return the path to the
+        download location.
+
+        TODO: implement django storage and caching so files are only downloaded
+        if not on the local system.
+        """
+        record_id = str(record_id)
+        import tempfile
+        import pathlib
+        from urllib.request import urlretrieve
+        storage = pathlib.Path(tempfile.mkdtemp())
+        directory = storage.joinpath('zenodo', record_id)
+        directory.mkdir(parents=True, exist_ok=True)
+        path = directory.joinpath(filename)
+        url = f'https://zenodo.org/record/{record_id}/files/{filename}'
+        urlretrieve(url, path)
+        return path
