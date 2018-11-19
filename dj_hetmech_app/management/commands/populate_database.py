@@ -8,12 +8,16 @@ python manage.py populate_database
 """
 
 import functools
+import pathlib
+import zipfile
+from urllib.request import urlretrieve
 
 from django.core.management.base import BaseCommand
 import hetio.readwrite
 import pandas
 
 import dj_hetmech_app.models as hetmech_models
+from dj_hetmech_app.utils import timed
 
 
 class Command(BaseCommand):
@@ -22,6 +26,7 @@ class Command(BaseCommand):
 
     @property
     @functools.lru_cache()
+    @timed
     def _hetionet_graph(self):
         repo = 'https://github.com/hetio/hetionet'
         commit = '23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a'
@@ -35,6 +40,13 @@ class Command(BaseCommand):
         Return the Django metanode object.
         """
         return hetmech_models.Metanode.objects.get(identifier=identifier)
+
+    @functools.lru_cache()
+    def _get_metapath(self, abbreviation):
+        """
+        Return the Django metapath object.
+        """
+        return hetmech_models.Metapath.objects.get(abbreviation=abbreviation)
 
     def _populate_metanode_table(self):
         url = 'https://github.com/hetio/hetionet/raw/23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a/describe/nodes/metanodes.tsv'
@@ -85,34 +97,61 @@ class Command(BaseCommand):
             ))
         hetmech_models.Node.objects.bulk_create(objs)
 
-    def _populate_degree_grouped_permutation_table(self):
-        import zipfile
-        filename = 'degree-grouped-perms_length-1_damping-0.5.zip'
+    def _populate_degree_grouped_permutation_table(self, length):
+        """
+        Populate DGP table from https://zenodo.org/record/1435834
+        """
+        assert isinstance(length, int)
+        filename = f'degree-grouped-perms_length-{length}_damping-0.5.zip'
         path = self.zenodo_download('1435834', filename)
         with zipfile.ZipFile(path) as zip_file:
-            namelist = zip_file.namelist()
+            for zip_path in zip_file.namelist():
+                metapath, _ = pathlib.Path(zip_path).name.split('.', 1)
+                with zip_file.open(zip_path) as tsv_file:
+                    dgp_df = pandas.read_table(tsv_file, compression='gzip')
+                dgp_df['mean_nz'] = dgp_df['sum'] / dgp_df['nnz']
+                dgp_df['sd_nz'] = (
+                    (dgp_df['sum_of_squares'] - dgp_df['sum'] ** 2 / dgp_df['nnz']) / (dgp_df['nnz'] - 1)) ** 0.5
+                objs = list()
+                for row in dgp_df.itertuples():
+                    objs.append(hetmech_models.DegreeGroupedPermutation(
+                        metapath=self._get_metapath(metapath),
+                        source_degree=row.source_degree,
+                        target_degree=row.target_degree,
+                        n_dwpcs=row.n,
+                        n_nonzero_dwpcs=row.nnz,
+                        nonzero_mean=row.mean_nz,
+                        nonzero_sd=row.sd_nz,
+                    ))
+                hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
+
+    def _populate_path_count_table(self, length):
+        """
+        Populate path count table from https://zenodo.org/record/1435834
+        """
+        filename = f'dwpcs_length-{length}_damping-0.0.zip'
+        path = self.zenodo_download('1435834', filename)
+        raise NotImplementedError
 
     def handle(self, *args, **options):
-        self._populate_metanode_table()
-        self._populate_metapath_table()
-        self._populate_node_table()
+        timed(self._populate_metanode_table)()
+        timed(self._populate_metapath_table)()
+        timed(self._populate_node_table)()
+        for length in 1, 2, 3:
+            timed(self._populate_degree_grouped_permutation_table)(length)
 
     def zenodo_download(self, record_id, filename):
         """
         Download a file from a Zenodo record and return the path to the
-        download location.
-
-        TODO: implement django storage and caching so files are only downloaded
-        if not on the local system.
+        download location. If a file already exists at the specified path,
+        do not re-download.
         """
         record_id = str(record_id)
-        import tempfile
-        import pathlib
-        from urllib.request import urlretrieve
-        storage = pathlib.Path(tempfile.mkdtemp())
-        directory = storage.joinpath('zenodo', record_id)
-        directory.mkdir(parents=True, exist_ok=True)
-        path = directory.joinpath(filename)
-        url = f'https://zenodo.org/record/{record_id}/files/{filename}'
-        urlretrieve(url, path)
+        storage = pathlib.Path(__file__).parent.joinpath('downloads')
+        zenodo_dir = storage.joinpath('zenodo', record_id)
+        zenodo_dir.mkdir(parents=True, exist_ok=True)
+        path = zenodo_dir.joinpath(filename)
+        if not path.exists():
+            url = f'https://zenodo.org/record/{record_id}/files/{filename}'
+            urlretrieve(url, path)
         return path

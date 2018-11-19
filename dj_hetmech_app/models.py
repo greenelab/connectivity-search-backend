@@ -56,8 +56,8 @@ class DegreeGroupedPermutation(models.Model):
     metapath = models.ForeignKey(to='Metapath', on_delete=models.PROTECT)
     source_degree = models.PositiveIntegerField()
     target_degree = models.PositiveIntegerField()
-    n_dwpcs = models.PositiveIntegerField()
-    n_nonzero_dwpcs = models.PositiveIntegerField()
+    n_dwpcs = models.BigIntegerField()
+    n_nonzero_dwpcs = models.BigIntegerField()
     nonzero_mean = models.FloatField()
     nonzero_sd = models.FloatField()
 

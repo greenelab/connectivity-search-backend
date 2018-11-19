@@ -2,6 +2,9 @@
 dj_hetmech_app/migrations
 db.sqlite3
 
+# Manage command downloads
+/dj_hetmech_app/management/commands/downloads
+
 # Python
 __pycache__
 
