@@ -180,12 +180,19 @@ class Command(BaseCommand):
             path = self.zenodo_download('1435834', archive)
             load_archive(path, self.hetmat_path)
 
-    def _populate_path_count_table(self, length):
+    def _populate_path_count_table(self):
         """
         Populate path count table.
         """
         hetmat = self._hetionet_hetmat
-        metapaths = hetmech_models.Metapath.objects.values_list('abbreviation', flat=True)
+        metapaths = (
+            hetmech_models
+            .DegreeGroupedPermutation
+            .objects
+            .values_list('metapath', flat=True)
+            .distinct()
+            .order_by()
+        )
         for metapath in metapaths:
             metapath = self._hetionet_graph.metagraph.metapath_from_abbrev(metapath)
             rows = hetmatpy.pipeline.combine_dwpc_dgp(
@@ -209,14 +216,17 @@ class Command(BaseCommand):
             hetmech_models.PathCount.objects.bulk_create(objs)
 
     def handle(self, *args, **options):
+        # Load hetmat and graph
+        self._download_hetionet_hetmat()
+        self._hetionet_graph
+        # Populate tables
         timed(self._populate_metanode_table)()
-        timed(self._populate_metapath_table)()
         timed(self._populate_node_table)()
-        timed(self._download_hetionet_hetmat)()
+        timed(self._populate_metapath_table)()
         for length in range(1, 2):
             timed(self._download_path_counts)(length)
-            timed(self._populate_degree_grouped_permutation_table(length))
-            timed(self._populate_path_count_table(length))
+            timed(self._populate_degree_grouped_permutation_table)(length)
+        timed(self._populate_path_count_table)()
 
     def zenodo_download(self, record_id, filename):
         """
