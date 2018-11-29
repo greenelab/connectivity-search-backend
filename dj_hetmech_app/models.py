@@ -69,7 +69,7 @@ class PathCount(models.Model):
     metapath = models.ForeignKey(to='Metapath', on_delete=models.PROTECT)
     source = models.ForeignKey(to='Node', on_delete=models.PROTECT, related_name='path_source')
     target = models.ForeignKey(to='Node', on_delete=models.PROTECT, related_name='path_target')
-    dgp_id = models.ForeignKey(to='DegreeGroupedPermutation', on_delete=models.PROTECT)
+    dgp = models.ForeignKey(to='DegreeGroupedPermutation', on_delete=models.PROTECT)
     path_count = models.PositiveIntegerField()
     dwpc = models.FloatField(
         verbose_name='degree-weighted path count with damping exponent of 0.5'

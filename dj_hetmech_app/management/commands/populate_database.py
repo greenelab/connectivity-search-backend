@@ -215,7 +215,7 @@ class Command(BaseCommand):
                     metapath=self._get_metapath(metapath),
                     source=self._get_node(metapath.source().identifier, row['source_id']),
                     target=self._get_node(metapath.target().identifier, row['target_id']),
-                    dgp_id=self._get_dgp(str(metapath), row['source_degree'], row['target_degree']),
+                    dgp=self._get_dgp(str(metapath), row['source_degree'], row['target_degree']),
                     path_count=row['path_count'],
                     dwpc=row['dwpc'],
                     p_value=row['p_value'],
