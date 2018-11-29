@@ -31,11 +31,12 @@ class Command(BaseCommand):
 
     @timed
     def _download_hetionet_hetmat(self):
-        repo = 'https://github.com/hetio/hetionet'
-        commit = '6186d406ee63455babc4801e8f6e87ce89b0a719'
-        path = 'hetnet/matrix/hetionet-v1.0.hetmat.zip'
-        url = f'{repo}/raw/{commit}/{path}'
-        load_archive(url, self.hetmat_path)
+        path = self.github_download(
+            repo='hetio/hetionet',
+            commit='6186d406ee63455babc4801e8f6e87ce89b0a719',
+            path='hetnet/matrix/hetionet-v1.0.hetmat.zip',
+        )
+        load_archive(path, self.hetmat_path)
         return self.hetmat_path
 
     @property
@@ -49,11 +50,12 @@ class Command(BaseCommand):
     @functools.lru_cache()
     @timed
     def _hetionet_graph(self):
-        repo = 'https://github.com/hetio/hetionet'
-        commit = '23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a'
-        path = 'hetnet/json/hetionet-v1.0.json.bz2'
-        url = f'{repo}/raw/{commit}/{path}'
-        return hetio.readwrite.read_graph(url)
+        path = self.github_download(
+            repo='hetio/hetionet',
+            commit='23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a',
+            path='hetnet/json/hetionet-v1.0.json.bz2',
+        )
+        return hetio.readwrite.read_graph(path)
 
     @functools.lru_cache()
     def _get_metanode(self, identifier):
@@ -91,8 +93,12 @@ class Command(BaseCommand):
         )
 
     def _populate_metanode_table(self):
-        url = 'https://github.com/hetio/hetionet/raw/23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a/describe/nodes/metanodes.tsv'
-        metanode_df = pandas.read_table(url).sort_values('metanode')
+        path = self.github_download(
+            repo='hetio/hetionet',
+            commit='23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a',
+            path='describe/nodes/metanodes.tsv',
+        )
+        metanode_df = pandas.read_table(path).sort_values('metanode')
         for row in metanode_df.itertuples():
             hetmech_models.Metanode.objects.create(
                 identifier=row.metanode,
@@ -101,11 +107,12 @@ class Command(BaseCommand):
             )
 
     def _populate_metapath_table(self):
-        repo = 'https://github.com/greenelab/hetmech'
-        commit = '34e95b9f72f47cdeba3d51622bee31f79e9a4cb8'
-        path = 'explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv'
-        url = f'{repo}/raw/{commit}/{path}'
-        metapath_df = pandas.read_table(url).rename(columns={
+        path = self.github_download(
+            repo='greenelab/hetmech',
+            commit='34e95b9f72f47cdeba3d51622bee31f79e9a4cb8',
+            path='explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv',
+        )
+        metapath_df = pandas.read_table(path).rename(columns={
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
         metagraph = self._hetionet_graph.metagraph
@@ -235,11 +242,29 @@ class Command(BaseCommand):
         do not re-download.
         """
         record_id = str(record_id)
-        storage = pathlib.Path(__file__).parent.joinpath('downloads')
-        zenodo_dir = storage.joinpath('zenodo', record_id)
-        zenodo_dir.mkdir(parents=True, exist_ok=True)
-        path = zenodo_dir.joinpath(filename)
+        path = self.download_dir.joinpath('zenodo', record_id, filename)
         if not path.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
             url = f'https://zenodo.org/record/{record_id}/files/{filename}'
             urlretrieve(url, path)
         return path
+
+    def github_download(self, repo, commit, path):
+        """
+        Download a file from a GitHub repository and return the path to the
+        download location. If a file already exists at the specified path,
+        do not re-download.
+        """
+        repo_user, repo_name = repo.split('/')
+        local_path = self.download_dir.joinpath(
+            'github',
+            repo_user,
+            repo_name,
+            commit,
+            *path.split('/'),
+        )
+        if not local_path.exists():
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            url = f'https://github.com/{repo}/raw/{commit}/{path}'
+            urlretrieve(url, local_path)
+        return local_path
