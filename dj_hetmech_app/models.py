@@ -74,7 +74,7 @@ class PathCount(models.Model):
     dwpc = models.FloatField(
         verbose_name='degree-weighted path count with damping exponent of 0.5'
     )
-    p_value = models.FloatField()
+    p_value = models.FloatField(null=True)
 
     class Meta:
         unique_together = ('metapath', 'source', 'target')

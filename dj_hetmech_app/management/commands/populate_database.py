@@ -12,9 +12,12 @@ import pathlib
 import zipfile
 from urllib.request import urlretrieve
 
-from django.core.management.base import BaseCommand
 import hetio.readwrite
+import hetmatpy.hetmat
+import hetmatpy.pipeline
 import pandas
+from django.core.management.base import BaseCommand
+from hetmatpy.hetmat.archive import load_archive
 
 import dj_hetmech_app.models as hetmech_models
 from dj_hetmech_app.utils import timed
@@ -23,6 +26,24 @@ from dj_hetmech_app.utils import timed
 class Command(BaseCommand):
 
     help = 'Populate the database with Hetionet information'
+    download_dir = pathlib.Path(__file__).parent.joinpath('downloads')
+    hetmat_path = download_dir / 'hetionet-v1.0.hetmat'
+
+    @timed
+    def _download_hetionet_hetmat(self):
+        repo = 'https://github.com/hetio/hetionet'
+        commit = '6186d406ee63455babc4801e8f6e87ce89b0a719'
+        path = 'hetnet/matrix/hetionet-v1.0.hetmat.zip'
+        url = f'{repo}/raw/{commit}/{path}'
+        load_archive(url, self.hetmat_path)
+        return self.hetmat_path
+
+    @property
+    @functools.lru_cache()
+    def _hetionet_hetmat(self):
+        if not self.hetmat_path.exists():
+            self._download_hetionet_hetmat()
+        return hetmatpy.hetmat.HetMat(self.hetmat_path)
 
     @property
     @functools.lru_cache()
@@ -41,12 +62,33 @@ class Command(BaseCommand):
         """
         return hetmech_models.Metanode.objects.get(identifier=identifier)
 
-    @functools.lru_cache()
+    @functools.lru_cache(maxsize=10_000)
+    def _get_node(self, metanode, identifier):
+        """
+        Return the Django node object.
+        """
+        return hetmech_models.Node.objects.get(
+            metanode=self._get_metanode(metanode),
+            identifier=str(identifier),
+        )
+
+    @functools.lru_cache(maxsize=10_000)
     def _get_metapath(self, abbreviation):
         """
         Return the Django metapath object.
         """
         return hetmech_models.Metapath.objects.get(abbreviation=abbreviation)
+
+    @functools.lru_cache(maxsize=10_000)
+    def _get_dgp(self, metapath, source_degree, target_degree):
+        """
+        Return the Django metapath object.
+        """
+        return hetmech_models.DegreeGroupedPermutation.objects.get(
+            metapath=self._get_metapath(str(metapath)),
+            source_degree=source_degree,
+            target_degree=target_degree,
+        )
 
     def _populate_metanode_table(self):
         url = 'https://github.com/hetio/hetionet/raw/23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a/describe/nodes/metanodes.tsv'
@@ -125,20 +167,56 @@ class Command(BaseCommand):
                     ))
                 hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
 
-    def _populate_path_count_table(self, length):
+    def _download_path_counts(self, length):
         """
         Populate path count table from https://zenodo.org/record/1435834
         """
-        filename = f'dwpcs_length-{length}_damping-0.0.zip'
-        path = self.zenodo_download('1435834', filename)
-        raise NotImplementedError
+        archives = [
+            f'degree-grouped-perms_length-{length}_damping-0.5.zip',
+            f'dwpcs_length-{length}_damping-0.0.zip',
+            f'dwpcs_length-{length}_damping-0.5.zip',
+        ]
+        for archive in archives:
+            path = self.zenodo_download('1435834', archive)
+            load_archive(path, self.hetmat_path)
+
+    def _populate_path_count_table(self, length):
+        """
+        Populate path count table.
+        """
+        hetmat = self._hetionet_hetmat
+        metapaths = hetmech_models.Metapath.objects.values_list('abbreviation', flat=True)
+        for metapath in metapaths:
+            metapath = self._hetionet_graph.metagraph.metapath_from_abbrev(metapath)
+            rows = hetmatpy.pipeline.combine_dwpc_dgp(
+                graph=hetmat,
+                metapath=metapath,
+                damping=0.5,
+                ignore_zeros=True,
+                max_p_value=0.1,
+            )
+            objs = list()
+            for row in rows:
+                objs.append(hetmech_models.PathCount(
+                    metapath=self._get_metapath(metapath),
+                    source=self._get_node(metapath.source().identifier, row['source_id']),
+                    target=self._get_node(metapath.target().identifier, row['target_id']),
+                    dgp_id=self._get_dgp(str(metapath), row['source_degree'], row['target_degree']),
+                    path_count=row['path_count'],
+                    dwpc=row['dwpc'],
+                    p_value=row['p_value'],
+                ))
+            hetmech_models.PathCount.objects.bulk_create(objs)
 
     def handle(self, *args, **options):
         timed(self._populate_metanode_table)()
         timed(self._populate_metapath_table)()
         timed(self._populate_node_table)()
-        for length in 1, 2, 3:
-            timed(self._populate_degree_grouped_permutation_table)(length)
+        timed(self._download_hetionet_hetmat)()
+        for length in range(1, 2):
+            timed(self._download_path_counts)(length)
+            timed(self._populate_degree_grouped_permutation_table(length))
+            timed(self._populate_path_count_table(length))
 
     def zenodo_download(self, record_id, filename):
         """
