@@ -4,6 +4,7 @@ python manage.py makemigrations
 python manage.py migrate
 python manage.py flush --no-input
 python manage.py populate_database --max-metapath-length=3 --batch-size=12000
+python manage.py database_info
 ```
 """
 
