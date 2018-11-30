@@ -144,6 +144,9 @@ class Command(BaseCommand):
                 url=node.data.get('url', ''),
                 data=node.data,
             ))
+            if len(objs) >= self.options['batch_size']:
+                hetmech_models.Node.objects.bulk_create(objs)
+                objs = list()
         hetmech_models.Node.objects.bulk_create(objs)
 
     def _populate_degree_grouped_permutation_table(self, length):
@@ -172,6 +175,9 @@ class Command(BaseCommand):
                         nonzero_mean=row.mean_nz,
                         nonzero_sd=row.sd_nz,
                     ))
+                    if len(objs) >= self.options['batch_size']:
+                        hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
+                        objs = list()
                 hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
 
     def _download_path_counts(self, length):
@@ -220,9 +226,21 @@ class Command(BaseCommand):
                     dwpc=row['dwpc'],
                     p_value=row['p_value'],
                 ))
+                if len(objs) >= self.options['batch_size']:
+                    hetmech_models.PathCount.objects.bulk_create(objs)
+                    objs = list()
             hetmech_models.PathCount.objects.bulk_create(objs)
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--batch-size', type=int, default=5_000,
+            help='max number of objects to write to the database at a time '
+                 '(default 5000)',
+        )
+
     def handle(self, *args, **options):
+        # Load configuration
+        self.options = options
         # Load hetmat and graph
         self._download_hetionet_hetmat()
         self._hetionet_graph
