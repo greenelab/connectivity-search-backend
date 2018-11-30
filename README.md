@@ -24,7 +24,8 @@ docker run \
   --env POSTGRES_DB=dj_hetmech \
   --env POSTGRES_USER=dj_hetmech \
   --env POSTGRES_PASSWORD=not_secure \
+  --volume `pwd`/database:/var/lib/postgresql/data \
   --publish 5432:5432 \
   --detach \
-  postgres:11.0
+  postgres:11.1
 ```
