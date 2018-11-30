@@ -161,9 +161,7 @@ class Command(BaseCommand):
                 metapath, _ = pathlib.Path(zip_path).name.split('.', 1)
                 with zip_file.open(zip_path) as tsv_file:
                     dgp_df = pandas.read_table(tsv_file, compression='gzip')
-                dgp_df['mean_nz'] = dgp_df['sum'] / dgp_df['nnz']
-                dgp_df['sd_nz'] = (
-                    (dgp_df['sum_of_squares'] - dgp_df['sum'] ** 2 / dgp_df['nnz']) / (dgp_df['nnz'] - 1)) ** 0.5
+                dgp_df = hetmatpy.pipeline.add_gamma_hurdle_to_dgp_df(dgp_df)
                 objs = list()
                 for row in dgp_df.itertuples():
                     objs.append(hetmech_models.DegreeGroupedPermutation(
