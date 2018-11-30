@@ -38,7 +38,6 @@ class Command(BaseCommand):
             path='hetnet/matrix/hetionet-v1.0.hetmat.zip',
         )
         load_archive(path, self.hetmat_path)
-        return self.hetmat_path
 
     @property
     @functools.lru_cache()
