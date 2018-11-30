@@ -3,7 +3,7 @@
 python manage.py makemigrations
 python manage.py migrate
 python manage.py flush --no-input
-python manage.py populate_database
+python manage.py populate_database --max-metapath-length=3 --batch-size=12000
 ```
 """
 
@@ -231,6 +231,11 @@ class Command(BaseCommand):
 
     def add_arguments(self, parser):
         parser.add_argument(
+            '--max-metapath-length', type=int, default=1,
+            help='max metapath length for which to populate the database with path counts '
+                 '(default 1). For example, 3 imports path counts for metapaths with length 1, 2, or 3.'
+        )
+        parser.add_argument(
             '--batch-size', type=int, default=5_000,
             help='max number of objects to write to the database at a time '
                  '(default 5000)',
@@ -246,7 +251,7 @@ class Command(BaseCommand):
         timed(self._populate_metanode_table)()
         timed(self._populate_node_table)()
         timed(self._populate_metapath_table)()
-        for length in range(1, 2):
+        for length in range(1, 1 + options['max_metapath_length']):
             timed(self._download_path_counts)(length)
             timed(self._populate_degree_grouped_permutation_table)(length)
         timed(self._populate_path_count_table)()
