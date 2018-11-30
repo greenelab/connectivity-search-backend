@@ -37,6 +37,8 @@ class Node(models.Model):
     data = JSONField()
 
     class Meta:
+        # unique_together implies index_together in postgres
+        # https://stackoverflow.com/a/42676612/4651668
         unique_together = ('metanode', 'identifier')
 
 
@@ -78,3 +80,6 @@ class PathCount(models.Model):
 
     class Meta:
         unique_together = ('metapath', 'source', 'target')
+        indexes = [
+            models.Index(fields=['source', 'target']),
+        ]

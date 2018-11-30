@@ -254,8 +254,8 @@
 <text text-anchor="start" x="208.5" y="-531.1" font-family="Helvetica Bold" font-size="8.00">ForeignKey (id)</text>
 <text text-anchor="start" x="270.5" y="-531.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 <text text-anchor="start" x="133.5" y="-518.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
-<text text-anchor="start" x="143.5" y="-518.1" font-family="Helvetica Bold" font-size="8.00">dgp_id</text>
-<text text-anchor="start" x="171.5" y="-518.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
+<text text-anchor="start" x="143.5" y="-518.1" font-family="Helvetica Bold" font-size="8.00">dgp</text>
+<text text-anchor="start" x="159.5" y="-518.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 <text text-anchor="start" x="198.5" y="-518.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 <text text-anchor="start" x="208.5" y="-518.1" font-family="Helvetica Bold" font-size="8.00">ForeignKey (id)</text>
 <text text-anchor="start" x="270.5" y="-518.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -300,7 +300,7 @@
 <g id="edge8" class="edge"><title>dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_DegreeGroupedPermutation</title>
 <path fill="none" stroke="black" d="M329.173,-465.454C349.057,-452.147 369.838,-438.239 389.494,-425.084"/>
 <ellipse fill="black" stroke="black" cx="325.791" cy="-467.717" rx="4.00002" ry="4.00002"/>
-<text text-anchor="middle" x="390.5" y="-445.6" font-family="Helvetica,sans-Serif" font-size="8.00">dgp_id (pathcount)</text>
+<text text-anchor="middle" x="385.5" y="-445.6" font-family="Helvetica,sans-Serif" font-size="8.00">dgp (pathcount)</text>
 </g>
 </g>
 </svg>
