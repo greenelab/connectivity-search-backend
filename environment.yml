@@ -11,6 +11,8 @@ dependencies:
   - conda-forge::pydot=1.2.4
   - conda-forge::python=3.7.0
   - conda-forge::requests=2.20.0
+  - conda-forge::scipy=1.1.0
   - pip:
     - git+https://github.com/hetio/hetio@1a1da50159f5b01f7ef3490969c7a55f346fbfd5
+    - git+https://github.com/hetio/hetmatpy@6a6f0074c24c15d94dcc2f92474f8db8dae20f19
     - neo4j-driver==1.7.0

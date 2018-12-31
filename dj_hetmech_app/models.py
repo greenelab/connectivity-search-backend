@@ -37,6 +37,8 @@ class Node(models.Model):
     data = JSONField()
 
     class Meta:
+        # unique_together implies index_together in postgres
+        # https://stackoverflow.com/a/42676612/4651668
         unique_together = ('metanode', 'identifier')
 
 
@@ -56,8 +58,8 @@ class DegreeGroupedPermutation(models.Model):
     metapath = models.ForeignKey(to='Metapath', on_delete=models.PROTECT)
     source_degree = models.PositiveIntegerField()
     target_degree = models.PositiveIntegerField()
-    n_dwpcs = models.PositiveIntegerField()
-    n_nonzero_dwpcs = models.PositiveIntegerField()
+    n_dwpcs = models.BigIntegerField()
+    n_nonzero_dwpcs = models.BigIntegerField()
     nonzero_mean = models.FloatField()
     nonzero_sd = models.FloatField()
 
@@ -69,11 +71,15 @@ class PathCount(models.Model):
     metapath = models.ForeignKey(to='Metapath', on_delete=models.PROTECT)
     source = models.ForeignKey(to='Node', on_delete=models.PROTECT, related_name='path_source')
     target = models.ForeignKey(to='Node', on_delete=models.PROTECT, related_name='path_target')
+    dgp = models.ForeignKey(to='DegreeGroupedPermutation', on_delete=models.PROTECT)
     path_count = models.PositiveIntegerField()
     dwpc = models.FloatField(
         verbose_name='degree-weighted path count with damping exponent of 0.5'
     )
-    p_value = models.FloatField()
+    p_value = models.FloatField(null=True)
 
     class Meta:
         unique_together = ('metapath', 'source', 'target')
+        indexes = [
+            models.Index(fields=['source', 'target']),
+        ]
