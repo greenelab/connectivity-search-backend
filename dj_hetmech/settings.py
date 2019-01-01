@@ -87,7 +87,7 @@ DATABASES = {
         'NAME': 'dj_hetmech',
         'USER': 'read_only_user',
         'PASSWORD': secrets['db']['password'],
-        'HOST': 'localhost',
+        'HOST': 'phr-greene-007.med.upenn.edu',
         'PORT': 5432,
     }
 }
