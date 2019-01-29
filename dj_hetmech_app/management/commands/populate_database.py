@@ -18,6 +18,7 @@ import hetmatpy.hetmat
 import hetmatpy.pipeline
 import pandas
 from django.core.management.base import BaseCommand
+from django.db.models.Model import DoesNotExist
 from hetmatpy.hetmat.archive import load_archive
 
 import dj_hetmech_app.models as hetmech_models
@@ -119,6 +120,8 @@ class Command(BaseCommand):
         objs = list()
         for row in metapath_df.itertuples():
             metapath = metagraph.metapath_from_abbrev(row.metapath)
+            if len(metapath) > self.options['max_metapath_length']:
+                continue
             objs.append(hetmech_models.Metapath(
                 abbreviation=metapath.abbrev,
                 name=metapath.get_unicode_str(),
@@ -159,13 +162,17 @@ class Command(BaseCommand):
         with zipfile.ZipFile(path) as zip_file:
             for zip_path in zip_file.namelist():
                 metapath, _ = pathlib.Path(zip_path).name.split('.', 1)
+                try:
+                    metapath_key = self._get_metapath(metapath)
+                except DoesNotExist:
+                    continue
                 with zip_file.open(zip_path) as tsv_file:
                     dgp_df = pandas.read_table(tsv_file, compression='gzip')
                 dgp_df = hetmatpy.pipeline.add_gamma_hurdle_to_dgp_df(dgp_df)
                 objs = list()
                 for row in dgp_df.itertuples():
                     objs.append(hetmech_models.DegreeGroupedPermutation(
-                        metapath=self._get_metapath(metapath),
+                        metapath=metapath_key,
                         source_degree=row.source_degree,
                         target_degree=row.target_degree,
                         n_dwpcs=row.n,
@@ -235,6 +242,7 @@ class Command(BaseCommand):
             help='max metapath length for which to populate the database with path counts '
                  '(default 1). For example, 3 imports path counts for metapaths with length 1, 2, or 3.'
         )
+
         parser.add_argument(
             '--batch-size', type=int, default=5_000,
             help='max number of objects to write to the database at a time '
