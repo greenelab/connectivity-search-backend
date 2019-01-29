@@ -217,6 +217,13 @@ class Command(BaseCommand):
         ]
         for archive in archives:
             path = self.zenodo_download('1435834', archive)
+            with zipfile.ZipFile(path) as zip_file:
+                name_list = zip_file.namelist()
+            members = list()
+            for path in name_list:
+                metapath, _ = pathlib.Path(path).name.split('.', 1)
+                if self._keep_metapath(metapath):
+                    members.append(metapath)
             load_archive(path, self.hetmat_path)
 
     def _populate_path_count_table(self):
