@@ -98,7 +98,7 @@ class Command(BaseCommand):
             commit='23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a',
             path='describe/nodes/metanodes.tsv',
         )
-        metanode_df = pandas.read_table(path).sort_values('metanode')
+        metanode_df = pandas.read_csv(path, sep='\t').sort_values('metanode')
         for row in metanode_df.itertuples():
             hetmech_models.Metanode.objects.create(
                 identifier=row.metanode,
@@ -135,7 +135,7 @@ class Command(BaseCommand):
             commit='34e95b9f72f47cdeba3d51622bee31f79e9a4cb8',
             path='explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv',
         )
-        metapath_df = pandas.read_table(path).rename(columns={
+        metapath_df = pandas.read_csv(path, sep='\t').rename(columns={
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
         metagraph = self._hetionet_graph.metagraph
@@ -188,7 +188,7 @@ class Command(BaseCommand):
                     continue
                 metapath_key = self._get_metapath(metapath)
                 with zip_file.open(zip_path) as tsv_file:
-                    dgp_df = pandas.read_table(tsv_file, compression='gzip')
+                    dgp_df = pandas.read_csv(tsv_file, sep='\t', compression='gzip')
                 dgp_df = hetmatpy.pipeline.add_gamma_hurdle_to_dgp_df(dgp_df)
                 objs = list()
                 for row in dgp_df.itertuples():
