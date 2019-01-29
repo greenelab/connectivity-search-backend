@@ -3,7 +3,7 @@
 python manage.py makemigrations
 python manage.py migrate
 python manage.py flush --no-input
-python manage.py populate_database --max-metapath-length=3 --batch-size=12000
+python manage.py populate_database --max-metapath-length=3  --reduced-metapaths --batch-size=12000
 python manage.py database_info
 ```
 """
@@ -98,7 +98,7 @@ class Command(BaseCommand):
             commit='23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a',
             path='describe/nodes/metanodes.tsv',
         )
-        metanode_df = pandas.read_table(path).sort_values('metanode')
+        metanode_df = pandas.read_csv(path, sep='\t').sort_values('metanode')
         for row in metanode_df.itertuples():
             hetmech_models.Metanode.objects.create(
                 identifier=row.metanode,
@@ -106,19 +106,44 @@ class Command(BaseCommand):
                 n_nodes=row.nodes,
             )
 
+    @functools.lru_cache(maxsize=20_000)
+    def _keep_metapath(self, metapath):
+        """
+        Return a boolean to indicate whether to load the specified metapath into the database.
+        """
+        metagraph = self._hetionet_graph.metagraph
+        metapath = metagraph.get_metapath(metapath)
+        if len(metapath) > self.options['max_metapath_length']:
+            return False
+        if self.options['reduced_metapaths']:
+            keep = {
+                ('Compound', 'Disease'),
+            }
+            for pair in list(keep):
+                keep.add((pair[1], pair[0]))
+            endpoints = metapath.source().identifier, metapath.target().identifier
+            if endpoints not in keep:
+                return False
+            metaedge_GcG = metagraph.get_metaedge('GcG')
+            if {metaedge_GcG, metaedge_GcG.inverse} & set(metapath):
+                return False
+        return True
+
     def _populate_metapath_table(self):
         path = self.github_download(
             repo='greenelab/hetmech',
             commit='34e95b9f72f47cdeba3d51622bee31f79e9a4cb8',
             path='explore/bulk-pipeline/archives/metapath-dwpc-stats.tsv',
         )
-        metapath_df = pandas.read_table(path).rename(columns={
+        metapath_df = pandas.read_csv(path, sep='\t').rename(columns={
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
         metagraph = self._hetionet_graph.metagraph
         objs = list()
         for row in metapath_df.itertuples():
             metapath = metagraph.metapath_from_abbrev(row.metapath)
+            if not self._keep_metapath(metapath):
+                continue
             objs.append(hetmech_models.Metapath(
                 abbreviation=metapath.abbrev,
                 name=metapath.get_unicode_str(),
@@ -159,13 +184,16 @@ class Command(BaseCommand):
         with zipfile.ZipFile(path) as zip_file:
             for zip_path in zip_file.namelist():
                 metapath, _ = pathlib.Path(zip_path).name.split('.', 1)
+                if not self._keep_metapath(metapath):
+                    continue
+                metapath_key = self._get_metapath(metapath)
                 with zip_file.open(zip_path) as tsv_file:
-                    dgp_df = pandas.read_table(tsv_file, compression='gzip')
+                    dgp_df = pandas.read_csv(tsv_file, sep='\t', compression='gzip')
                 dgp_df = hetmatpy.pipeline.add_gamma_hurdle_to_dgp_df(dgp_df)
                 objs = list()
                 for row in dgp_df.itertuples():
                     objs.append(hetmech_models.DegreeGroupedPermutation(
-                        metapath=self._get_metapath(metapath),
+                        metapath=metapath_key,
                         source_degree=row.source_degree,
                         target_degree=row.target_degree,
                         n_dwpcs=row.n,
@@ -189,7 +217,14 @@ class Command(BaseCommand):
         ]
         for archive in archives:
             path = self.zenodo_download('1435834', archive)
-            load_archive(path, self.hetmat_path)
+            with zipfile.ZipFile(path) as zip_file:
+                members = zip_file.namelist()
+            source_paths = list()
+            for member in members:
+                metapath, _ = pathlib.Path(member).name.split('.', 1)
+                if self._keep_metapath(metapath):
+                    source_paths.append(member)
+            load_archive(path, self.hetmat_path, source_paths=source_paths)
 
     def _populate_path_count_table(self):
         """
@@ -234,6 +269,10 @@ class Command(BaseCommand):
             '--max-metapath-length', type=int, default=1,
             help='max metapath length for which to populate the database with path counts '
                  '(default 1). For example, 3 imports path counts for metapaths with length 1, 2, or 3.'
+        )
+        parser.add_argument(
+            '--reduced-metapaths', action='store_true',
+            help='only load a reduced set of metapaths into the database for efficient prototyping.'
         )
         parser.add_argument(
             '--batch-size', type=int, default=5_000,
