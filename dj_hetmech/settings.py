@@ -25,6 +25,9 @@ with open(path) as read_file:
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = 'secret_not_yet_set'
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
@@ -81,8 +84,8 @@ WSGI_APPLICATION = 'dj_hetmech.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': secrets['db']['name'],,
-        'USER': secrets['db']['user'],,
+        'NAME': secrets['db']['name'],
+        'USER': secrets['db']['user'],
         'PASSWORD': secrets['db']['password'],
         'HOST': secrets['db']['host'],
         'PORT': secrets['db']['port'],
