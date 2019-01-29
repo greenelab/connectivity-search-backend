@@ -10,6 +10,7 @@ dependencies:
   - conda-forge::psycopg2=2.7.5
   - conda-forge::pydot=1.2.4
   - conda-forge::python=3.7.0
+  - conda-forge::pyyaml=3.13
   - conda-forge::requests=2.20.0
   - conda-forge::scipy=1.1.0
   - pip:

@@ -12,9 +12,15 @@ https://docs.djangoproject.com/en/2.1/ref/settings/
 
 import os
 
+import yaml
+
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
+# Read secrets from YAML file
+path = os.path.join(BASE_DIR, 'dj_hetmech', 'secrets.yml')
+with open(path) as read_file:
+    secrets = yaml.load(read_file)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
@@ -79,9 +85,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': 'dj_hetmech',
-        'USER': 'dj_hetmech',
-        'PASSWORD': 'not_secure',
-        'HOST': 'localhost',
+        'USER': 'read_only_user',
+        'PASSWORD': secrets['db']['password'],
+        'HOST': 'phr-greene-007.med.upenn.edu',
         'PORT': 5432,
     }
 }

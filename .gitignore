@@ -1,3 +1,6 @@
+# Configuration secrets
+secrets.yml
+
 # Database files
 dj_hetmech_app/migrations
 db.sqlite3
@@ -11,3 +14,4 @@ __pycache__
 
 # System files
 *~
+.vscode
