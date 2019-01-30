@@ -4,7 +4,6 @@ jobs:
     docker:
       # Primary docker container where the tests will be run
       - image: ubuntu:18.04
-        user: ubuntu
 
       # Secondary docker container for database service
       - image: postgres:10.6
@@ -27,7 +26,7 @@ jobs:
           name: Set up Postgres
           command: |
             apt install postgresql-client -y
-            createdb --host localhost circleci_test
+            createdb --host localhost --username=circleci circleci_test
             cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
       - run:
           name: Backend tests
