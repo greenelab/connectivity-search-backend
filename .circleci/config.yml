@@ -39,7 +39,6 @@ jobs:
             apt install gcc -y
             conda env create --quiet --file ./environment.yml
             conda activate hetmech-backend
-            cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
             python manage.py makemigrations dj_hetmech_app
             python manage.py migrate
             python manage.py test
