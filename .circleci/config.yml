@@ -27,7 +27,7 @@ jobs:
           command: |
             apt install postgresql-client -y
             #createuser -h localhost --superuser ubuntu
-            createdb -h localhost circleci_test
+            createdb -h localhost -U ubuntu circleci_test
             cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
       - run:
           name: Backend tests
