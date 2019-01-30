@@ -1,0 +1,54 @@
+version: 2
+jobs:
+  tests:
+    docker:
+      # Primary docker container where the tests will be run
+      - image: ubuntu:18.04
+
+      # Secondary docker container for database service
+      - image: postgres:10.6
+        environment:
+          POSTGRES_USER: root
+
+    working_directory: ~/hetmech-backend
+
+    steps:
+      - checkout
+      - run:
+          name: Install miniconda
+          working_directory: ~/
+          command: |
+            apt update && apt upgrade -y
+            apt install git wget -y
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh --output-document miniconda.sh
+            bash miniconda.sh -b -p $HOME/miniconda
+      - run:
+          name: Set up Postgres
+          command: |
+            apt install postgresql-client -y
+            createuser -h localhost --superuser ubuntu
+            createdb -h localhost circleci_test
+            cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
+      - run:
+          name: Backend tests
+          command: |
+            source $HOME/miniconda/etc/profile.d/conda.sh
+            hash -r
+            conda config --set always_yes yes --set changeps1 no
+            conda info --all
+            # gcc is required for "pip install github+https ..."
+            apt install gcc -y
+            conda env create --quiet --file environment.yml
+            conda activate hetmech-backend
+            cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
+            python manage.py test
+      - run:
+          name: Frontend tests
+          command: |
+            apt install node.js npm libfontconfig -y
+
+workflows:
+  version: 2
+  test:
+    jobs:
+      - tests
