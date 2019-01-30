@@ -8,7 +8,7 @@ jobs:
       # Secondary docker container for database service
       - image: postgres:10.6
         environment:
-          POSTGRES_USER: root
+          POSTGRES_USER: ubuntu
 
     working_directory: ~/hetmech-backend
 
@@ -26,7 +26,7 @@ jobs:
           name: Set up Postgres
           command: |
             apt install postgresql-client -y
-            createuser -h localhost --superuser ubuntu
+            #createuser -h localhost --superuser ubuntu
             createdb -h localhost circleci_test
             cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
       - run:
