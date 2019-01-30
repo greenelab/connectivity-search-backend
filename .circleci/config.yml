@@ -4,11 +4,12 @@ jobs:
     docker:
       # Primary docker container where the tests will be run
       - image: ubuntu:18.04
+        user: circleci
 
       # Secondary docker container for database service
       - image: postgres:10.6
         environment:
-          POSTGRES_USER: ubuntu
+          POSTGRES_USER: circleci
 
     working_directory: ~/hetmech-backend
 
@@ -26,8 +27,7 @@ jobs:
           name: Set up Postgres
           command: |
             apt install postgresql-client -y
-            #createuser -h localhost --superuser ubuntu
-            createdb -h localhost -U ubuntu circleci_test
+            createdb --host localhost circleci_test
             cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
       - run:
           name: Backend tests
