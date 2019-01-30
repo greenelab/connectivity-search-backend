@@ -35,11 +35,13 @@ jobs:
             hash -r
             conda config --set always_yes yes --set changeps1 no
             conda info --all
-            # gcc is required for "pip install github+https ..."
+            # gcc is required for "pip install git+https://..."
             apt install gcc -y
-            conda env create --quiet --file environment.yml
+            conda env create --quiet --file ./environment.yml
             conda activate hetmech-backend
             cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
+            python manage.py makemigrations
+            python manage.py migrate
             python manage.py test
       - run:
           name: Frontend tests
