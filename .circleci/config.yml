@@ -4,7 +4,7 @@ jobs:
     docker:
       # Primary docker container where the tests will be run
       - image: ubuntu:18.04
-        user: circleci
+        user: ubuntu
 
       # Secondary docker container for database service
       - image: postgres:10.6
