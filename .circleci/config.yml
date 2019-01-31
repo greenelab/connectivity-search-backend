@@ -3,16 +3,12 @@ jobs:
   tests:
     docker:
       # Primary docker container where the tests will be run
-      #- image: ubuntu:18.04
-      - image: continuumio/miniconda3
+      - image: ubuntu:18.04
 
       # Secondary docker container for database service
       - image: postgres:10.6
         environment:
           POSTGRES_USER: circleci
-
-      # Secondary docker container for miniconda3
-      #- image: continuumio/miniconda3
 
     working_directory: ~/hetmech-backend
 
@@ -22,14 +18,13 @@ jobs:
           name: OS update
           command: |
             apt update && apt upgrade --yes
-      #- run:
-      #    name: Install miniconda
-      #    working_directory: ~/
-      #    command: |
-      #      apt update && apt upgrade --yes
-      #      apt install git wget --yes
-      #      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh --output-document miniconda.sh
-      #      bash miniconda.sh -b -p $HOME/miniconda
+      - run:
+          name: Install miniconda
+          working_directory: ~/
+          command: |
+            apt install git wget --yes
+            wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh --output-document miniconda.sh
+            bash miniconda.sh -b -p $HOME/miniconda
       - run:
           name: Set up Postgres
           command: |
@@ -39,15 +34,13 @@ jobs:
       - run:
           name: Backend tests
           command: |
-            #source $HOME/miniconda/etc/profile.d/conda.sh
-            #hash -r
-            #conda config --set always_yes yes --set changeps1 no
-            #conda info --all
+            source $HOME/miniconda/etc/profile.d/conda.sh
+            hash -r
+            conda config --set always_yes yes --set changeps1 no
+            conda info --all
             # gcc is required for "pip install git+https://..."
             apt install gcc --yes
             conda env create --quiet --file ./environment.yml
-            echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
-            source ~/.bashrc
             conda activate hetmech-backend
             python manage.py makemigrations dj_hetmech_app
             python manage.py migrate
@@ -55,7 +48,7 @@ jobs:
       - run:
           name: Frontend tests
           command: |
-            apt install node.js npm libfontconfig --yes
+            apt install nodejs npm libfontconfig --yes
 
 workflows:
   version: 2
