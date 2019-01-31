@@ -17,6 +17,10 @@ jobs:
 
     steps:
       - checkout
+      - run:
+          name: OS update
+          command: |
+            apt update && apt upgrade --yes
       #- run:
       #    name: Install miniconda
       #    working_directory: ~/
