@@ -3,7 +3,8 @@ jobs:
   tests:
     docker:
       # Primary docker container where the tests will be run
-      - image: ubuntu:18.04
+      #- image: ubuntu:18.04
+      - image: continuumio/miniconda3
 
       # Secondary docker container for database service
       - image: postgres:10.6
@@ -11,7 +12,7 @@ jobs:
           POSTGRES_USER: circleci
 
       # Secondary docker container for miniconda3
-      - image: continuumio/miniconda3
+      #- image: continuumio/miniconda3
 
     working_directory: ~/hetmech-backend
 
