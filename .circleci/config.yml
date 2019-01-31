@@ -40,8 +40,6 @@ jobs:
       - run:
           name: Backend tests
           command: |
-            #source $HOME/miniconda/etc/profile.d/conda.sh
-            #conda activate hetmech-backend
             python manage.py makemigrations dj_hetmech_app
             python manage.py migrate
             python manage.py test
