@@ -47,6 +47,7 @@ jobs:
             apt install gcc --yes
             conda env create --quiet --file ./environment.yml
             echo ". /opt/conda/etc/profile.d/conda.sh" >> ~/.bashrc
+            source ~/.bashrc
             conda activate hetmech-backend
             python manage.py makemigrations dj_hetmech_app
             python manage.py migrate
