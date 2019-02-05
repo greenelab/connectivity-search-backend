@@ -43,10 +43,6 @@ jobs:
             python manage.py makemigrations dj_hetmech_app
             python manage.py migrate
             python manage.py test
-      - run:
-          name: Frontend tests
-          command: |
-            apt install nodejs npm libfontconfig --yes
 
 workflows:
   version: 2
