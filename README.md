@@ -1,5 +1,7 @@
 # hetmech backend
 
+[![CircleCI](https://circleci.com/gh/greenelab/hetmech-backend.svg?style=svg)](https://circleci.com/gh/greenelab/hetmech-backend)
+
 
 ## Environment
 
