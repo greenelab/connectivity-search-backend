@@ -2,9 +2,13 @@ name: hetmech-backend
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::django-extensions=2.1.4
   - conda-forge::django=2.1.5
+  - conda-forge::django-cors-headers=2.4.0
+  - conda-forge::django-extensions=2.1.4
+  - conda-forge::django-filter=2.1.0
+  - conda-forge::djangorestframework=3.9.1
   - conda-forge::graphviz=2.38.0
+  - conda-forge::gunicorn=19.9.0
   - conda-forge::ipykernel=5.1.0
   - conda-forge::pandas=0.24.0
   - conda-forge::psycopg2=2.7.7
