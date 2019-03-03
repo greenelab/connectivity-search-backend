@@ -2,22 +2,22 @@ name: hetmech-backend
 channels:
   - conda-forge
 dependencies:
-  - conda-forge::django=2.1.5
+  - conda-forge::django=2.1.7
   - conda-forge::django-cors-headers=2.4.0
-  - conda-forge::django-extensions=2.1.4
+  - conda-forge::django-extensions=2.1.6
   - conda-forge::django-filter=2.1.0
   - conda-forge::djangorestframework=3.9.1
   - conda-forge::graphviz=2.38.0
   - conda-forge::gunicorn=19.9.0
   - conda-forge::ipykernel=5.1.0
-  - conda-forge::pandas=0.24.0
+  - conda-forge::pandas=0.24.1
   - conda-forge::psycopg2=2.7.7
   - conda-forge::pydot=1.4.0
   - conda-forge::python=3.7.1
   - conda-forge::pyyaml=3.13
   - conda-forge::requests=2.21.0
-  - conda-forge::scipy=1.2.0
+  - conda-forge::scipy=1.2.1
   - pip:
     - git+https://github.com/hetio/hetio@7c179b75a5520b3520cc44017325b64c2b655ce2
-    - git+https://github.com/hetio/hetmatpy@ca29be378c3815882c9d3bd470463f353f18bfee
+    - git+https://github.com/hetio/hetmatpy@b4f82acbbbd66c90fc17da98e06588b3b10daecd
     - neo4j-driver==1.7.0
