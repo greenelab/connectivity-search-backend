@@ -19,5 +19,5 @@ dependencies:
   - conda-forge::scipy=1.2.1
   - pip:
     - git+https://github.com/hetio/hetio@7c179b75a5520b3520cc44017325b64c2b655ce2
-    - git+https://github.com/hetio/hetmatpy@6c615a61fcb26192a463ba8a05856d6501253121
+    - git+https://github.com/hetio/hetmatpy@4de8877c93fdaea29de4ea72c4e61499dd4c02e1
     - neo4j-driver==1.7.0
