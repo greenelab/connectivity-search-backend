@@ -20,6 +20,7 @@ from dj_hetmech_app import views
 
 router = routers.DefaultRouter()
 router.register("nodes", views.NodeView)
+router.register("pathcounts", views.PathCountView)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
