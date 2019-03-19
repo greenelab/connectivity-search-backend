@@ -33,9 +33,11 @@ class QueryPairView(APIView):
         for entry in pathcounts_data:
             # If necessary, swap "source_degree" and "target_degree"
             # values in each pathcount entry's "dgp".
-            if (int(source_id) != entry['source']):
+            reversed = int(source_id) != entry['source']
+            entry['reversed'] = reversed
+            if reversed:
                 entry['dgp']['source_degree'], entry['dgp']['target_degree'] = (
-                    entry['dgp']['target_degree'],  entry['dgp']['source_degree']
+                    entry['dgp']['target_degree'], entry['dgp']['source_degree']
                 )
             # Delete 'source' and 'target' fields too.
             del entry['source']
