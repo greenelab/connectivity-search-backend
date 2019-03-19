@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Node, PathCount, DegreeGroupedPermutation
+from .models import Node, Metapath, PathCount, DegreeGroupedPermutation
 
 class NodeSerializer(serializers.ModelSerializer):
     class Meta:
@@ -13,8 +13,19 @@ class DgpSerializer(serializers.ModelSerializer):
         exclude = ('id', 'metapath', )
 
 
+class CompactMetaPathSerilizer(serializers.ModelSerializer):
+    """This serilizer only includes two fields in Metapath model.
+    It is defined specifically for PathCountDgpSerializer.
+    """
+    class Meta:
+        model = Metapath
+        fields = ('abbreviation', 'name', )
+
+
 class PathCountDgpSerializer(serializers.ModelSerializer):
     dgp = DgpSerializer()
+    metapath = CompactMetaPathSerilizer()
+
     class Meta:
         model = PathCount
         fields = '__all__'

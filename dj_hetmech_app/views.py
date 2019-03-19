@@ -26,22 +26,41 @@ class QueryPairView(APIView):
     http_method_names = ['get']
 
     def polish_pathcounts(self, source_id, target_id, pathcounts_data):
-        """Polish pathcounts data to make source/target consistent with
-        user queries.
+        """This function polishes pathcounts_data. The polishment includes:
+        * Copy nested fields in 'metapath' and 'dgp' to upper level;
+        * Make source/target consistent with query parameters in the URL;
+        * Remove redundant fields;
+        * Sort pathcounts by certain fields.
         """
 
         for entry in pathcounts_data:
-            # If necessary, swap "source_degree" and "target_degree"
-            # values in each pathcount entry's "dgp".
+            # Copy the two key/value pairs in entry['metapath'] to entry:
+            entry['metapath_abbreviation'] = entry['metapath']['abbreviation']
+            entry['metapath_name'] = entry['metapath']['name']
+
+            # Copy all key/values in entry['dgp'] to entry:
+            for key, value in entry['dgp'].items():
+                entry[key] = value
+
+            # If necessary, swap "source_degree" and "target_degree" values.
             reversed = int(source_id) != entry['source']
             entry['reversed'] = reversed
             if reversed:
-                entry['dgp']['source_degree'], entry['dgp']['target_degree'] = (
-                    entry['dgp']['target_degree'], entry['dgp']['source_degree']
+                entry['source_degree'], entry['target_degree'] = (
+                    entry['target_degree'], entry['source_degree']
                 )
-            # Delete 'source' and 'target' fields.
+
+            # Delete 'metapath', 'dgp', 'source' and 'target' fields
+            del entry['metapath']
+            del entry['dgp']
             del entry['source']
             del entry['target']
+
+        # Sort pathcounts_data by 'p_value' and 'metapath_abbreviation' fields:
+        pathcounts_data.sort(
+            key=lambda i: (i['p_value'], i['metapath_abbreviation'])
+        )
+
         return pathcounts_data
 
     def get(self, request):
@@ -58,10 +77,10 @@ class QueryPairView(APIView):
             Q(source=target_id, target=source_id)
         )
 
-        data = {}
+        data = dict()
         data['source'] = NodeSerializer(source_node).data
         data['target'] = NodeSerializer(target_node).data
-        data['pathCounts'] = self.polish_pathcounts(
+        data['path_counts'] = self.polish_pathcounts(
             source_id,
             target_id,
             PathCountDgpSerializer(path_counts, many=True).data
