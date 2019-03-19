@@ -38,9 +38,8 @@ class QueryPairView(APIView):
             entry['metapath_abbreviation'] = entry['metapath']['abbreviation']
             entry['metapath_name'] = entry['metapath']['name']
 
-            # Copy all key/values in entry['dgp'] to entry:
-            for key, value in entry['dgp'].items():
-                entry[key] = value
+            # Copy all key/values in entry['dgp'] and remove 'dgp' field:
+            entry.update(entry.pop('dgp'))
 
             # If necessary, swap "source_degree" and "target_degree" values.
             reversed = int(source_id) != entry['source']
@@ -50,9 +49,8 @@ class QueryPairView(APIView):
                     entry['target_degree'], entry['source_degree']
                 )
 
-            # Delete 'metapath', 'dgp', 'source' and 'target' fields
+            # Delete 'metapath', 'source' and 'target' fields
             del entry['metapath']
-            del entry['dgp']
             del entry['source']
             del entry['target']
 
