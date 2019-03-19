@@ -14,7 +14,7 @@ class DgpSerializer(serializers.ModelSerializer):
 
 
 class CompactMetaPathSerilizer(serializers.ModelSerializer):
-    """This serilizer only includes two fields in Metapath model.
+    """This serializer only includes two fields in Metapath model.
     It is defined specifically for PathCountDgpSerializer.
     """
     class Meta:
