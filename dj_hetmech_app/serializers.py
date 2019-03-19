@@ -7,12 +7,6 @@ class NodeSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class PathCountSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = PathCount
-        fields = '__all__'
-
-
 class DgpSerializer(serializers.ModelSerializer):
     class Meta:
         model = DegreeGroupedPermutation

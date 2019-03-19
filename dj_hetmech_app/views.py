@@ -6,16 +6,12 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework import filters
 
 from .models import Node, PathCount
-from .serializers import (
-    NodeSerializer,
-    PathCountSerializer,
-    PathCountDgpSerializer,
-)
+from .serializers import NodeSerializer, PathCountDgpSerializer
 
 # Create your views here.
 
 # The view that shows node information.
-# See this page for "search" implementation and other filter options:
+# See the following page for "search" implementation and other filter options:
 # https://www.django-rest-framework.org/api-guide/filtering/
 class NodeView(ModelViewSet):
     http_method_names = ['get']
@@ -26,45 +22,47 @@ class NodeView(ModelViewSet):
     search_fields = ('identifier', 'metanode__identifier', 'name')
 
 
-class PathCountView(ModelViewSet):
-    http_method_names = ['get']
-    serializer_class = PathCountSerializer
-
-    def get_queryset(self):
-        """Optionally restricts the returned PathCount results to a given
-        user by filtering against the two query parameters in the URL.
-        """
-        queryset = PathCount.objects.all()
-        node1 = self.request.query_params.get('qsource', None)
-        node2 = self.request.query_params.get('qtarget', None)
-        if node1 and node2:
-            queryset = queryset.filter(
-                Q(source=node1, target=node2) | Q(source=node2, target=node1)
-            )
-
-        return queryset
-
-
 class QueryPairView(APIView):
     http_method_names = ['get']
 
+    def polish_pathcounts(self, source_id, target_id, pathcounts_data):
+        """Polish pathcounts data to make source/target consistent with
+        user queries.
+        """
+
+        for entry in pathcounts_data:
+            # If necessary, swap "source_degree" and "target_degree"
+            # values in each pathcount entry's "dgp".
+            if (int(source_id) != entry['source']):
+                entry['dgp']['source_degree'], entry['dgp']['target_degree'] = (
+                    entry['dgp']['target_degree'],  entry['dgp']['source_degree']
+                )
+            # Delete 'source' and 'target' fields too.
+            del entry['source']
+            del entry['target']
+        return pathcounts_data
+
     def get(self, request):
-        qsource_id = request.query_params.get('qsource', None)
-        qtarget_id = request.query_params.get('qtarget', None)
+        source_id = request.query_params.get('source', None)
+        target_id = request.query_params.get('target', None)
         try:
-            qsource_node = Node.objects.get(pk=qsource_id)
-            qtarget_node = Node.objects.get(pk=qtarget_id)
+            source_node = Node.objects.get(pk=source_id)
+            target_node = Node.objects.get(pk=target_id)
         except:
             raise Http404
 
         path_counts = PathCount.objects.filter(
-            Q(source=qsource_id, target=qtarget_id) |
-            Q(source=qtarget_id, target=qsource_id)
+            Q(source=source_id, target=target_id) |
+            Q(source=target_id, target=source_id)
         )
 
         data = {}
-        data['qsource'] = NodeSerializer(qsource_node).data
-        data['qtarget'] = NodeSerializer(qtarget_node).data
-        data['pathCounts'] = PathCountDgpSerializer(path_counts, many=True).data
+        data['source'] = NodeSerializer(source_node).data
+        data['target'] = NodeSerializer(target_node).data
+        data['pathCounts'] = self.polish_pathcounts(
+            source_id,
+            target_id,
+            PathCountDgpSerializer(path_counts, many=True).data
+        )
 
         return Response(data)
