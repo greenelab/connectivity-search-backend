@@ -39,7 +39,7 @@ class QueryPairView(APIView):
                 entry['dgp']['source_degree'], entry['dgp']['target_degree'] = (
                     entry['dgp']['target_degree'], entry['dgp']['source_degree']
                 )
-            # Delete 'source' and 'target' fields too.
+            # Delete 'source' and 'target' fields.
             del entry['source']
             del entry['target']
         return pathcounts_data
