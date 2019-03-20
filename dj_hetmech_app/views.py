@@ -48,6 +48,8 @@ class QueryPairView(APIView):
                 entry['source_degree'], entry['target_degree'] = (
                     entry['target_degree'], entry['source_degree']
                 )
+                from dj_hetmech_app.utils import reverse_metapath
+                entry.update(reverse_metapath(entry['metapath_abbreviation']))
 
             # Delete 'metapath', 'source' and 'target' fields
             del entry['metapath']
