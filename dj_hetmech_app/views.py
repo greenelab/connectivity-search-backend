@@ -1,9 +1,8 @@
 from django.db.models import Q
-from django.http import Http404
+from rest_framework import filters, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
-from rest_framework import filters
 
 from .models import Node, PathCount
 from .serializers import NodeSerializer, PathCountDgpSerializer
@@ -64,13 +63,35 @@ class QueryPairView(APIView):
         return pathcounts_data
 
     def get(self, request):
+        # Validate "source" parameter
         source_id = request.query_params.get('source', None)
-        target_id = request.query_params.get('target', None)
+        if source_id is None:
+            return Response(
+                {'error': 'source parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         try:
             source_node = Node.objects.get(pk=source_id)
+        except:
+            return Response(
+                {'error': 'source node not found in database'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validate "target" parameter
+        target_id = request.query_params.get('target', None)
+        if target_id is None:
+            return Response(
+                {'error': 'target parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
             target_node = Node.objects.get(pk=target_id)
         except:
-            raise Http404
+            return Response(
+                {'error': 'target node not found in database'},
+                status=status.HTTP_404_NOT_FOUND
+            )
 
         path_counts = PathCount.objects.filter(
             Q(source=source_id, target=target_id) |
