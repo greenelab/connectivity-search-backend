@@ -228,15 +228,6 @@ def get_hetionet_metagraph():
 
 
 @functools.lru_cache(maxsize=10_000)
-def reverse_metapath(abbreviation):
-    """
-    Return abbreviation and name for the inverse of a metapath.
-    (the metapath in the reversed direction)
-    """
+def metapath_from_abbrev(abbreviation):
     metagraph = get_hetionet_metagraph()
-    metapath = metagraph.metapath_from_abbrev(abbreviation)
-    inverse = metapath.inverse
-    return {
-        'metapath_abbreviation': inverse.abbrev,
-        'metapath_name': inverse.get_unicode_str(),
-    }
+    return metagraph.metapath_from_abbrev(abbreviation)

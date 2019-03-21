@@ -33,31 +33,32 @@ class QueryPairView(APIView):
         """
 
         for entry in pathcounts_data:
-            # Copy the two key/value pairs in entry['metapath'] to entry:
-            entry['metapath_abbreviation'] = entry['metapath']['abbreviation']
-            entry['metapath_name'] = entry['metapath']['name']
+            # Retrieve hetio.hetnet.MetaPath object for metapath
+            metapath_entry = entry.pop('metapath')
+            from dj_hetmech_app.utils import metapath_from_abbrev
+            metapath = metapath_from_abbrev(metapath_entry['abbreviation'])
 
             # Copy all key/values in entry['dgp'] and remove 'dgp' field:
             entry.update(entry.pop('dgp'))
 
             # If necessary, swap "source_degree" and "target_degree" values.
-            reversed = int(source_id) != entry['source']
-            entry['reversed'] = reversed
-            if reversed:
+            entry['reversed'] = int(source_id) != entry['source']
+            if entry['reversed']:
+                metapath = metapath.inverse
                 entry['source_degree'], entry['target_degree'] = (
                     entry['target_degree'], entry['source_degree']
                 )
-                from dj_hetmech_app.utils import reverse_metapath
-                entry.update(reverse_metapath(entry['metapath_abbreviation']))
+            entry['metapath_abbreviation'] = metapath.abbrev
+            entry['metapath_name'] = metapath.get_unicode_str()
+            entry['metaedges'] = [metaedge.get_id() for metaedge in metapath]
 
-            # Delete 'metapath', 'source' and 'target' fields
-            del entry['metapath']
-            del entry['source']
-            del entry['target']
+            # Remove fields
+            for key in 'source', 'target':
+                del entry[key]
 
         # Sort pathcounts_data by 'p_value' and 'metapath_abbreviation' fields:
         pathcounts_data.sort(
-            key=lambda i: (i['p_value'], i['metapath_abbreviation'])
+            key=lambda x: (x['p_value'], x['metapath_abbreviation'])
         )
 
         return pathcounts_data
