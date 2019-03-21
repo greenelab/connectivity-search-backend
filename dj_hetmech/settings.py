@@ -45,8 +45,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django_extensions',
     'rest_framework',
+    'django_filters',
     'corsheaders',
     'dj_hetmech_app',
+
 ]
 
 REST_FRAMEWORK = {

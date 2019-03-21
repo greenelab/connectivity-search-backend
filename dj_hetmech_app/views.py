@@ -21,7 +21,7 @@ class NodeView(ModelViewSet):
     def get_queryset(self):
         """Optionally restricts the returned nodes to a given list of
         metanode abbreviations by filtering against a comma-separated
-        `matanodes` query parameter in the URL.
+        `metanodes` query parameter in the URL.
         """
 
         queryset = Node.objects.all()
