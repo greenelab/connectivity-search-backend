@@ -54,8 +54,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            ssh $SSH_USER@$SSH_HOST "echo hello dhu"
-            #"cd /home/$SSH_USER/hetmech-backend; git co master; git pull; sudo /etc/init.d/supervisor restart"
+            ssh $SSH_USER@$SSH_HOST "bash ~/hetmech-backend/.circleci/deploy.sh"
 
 workflows:
   version: 2
