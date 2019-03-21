@@ -14,11 +14,23 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 # https://www.django-rest-framework.org/api-guide/filtering/
 class NodeView(ModelViewSet):
     http_method_names = ['get']
-
-    queryset = Node.objects.all()
     serializer_class = NodeSerializer
-    filter_backends = (filters.SearchFilter,)
+    filter_backends = (filters.SearchFilter, )
     search_fields = ('identifier', 'metanode__identifier', 'name')
+
+    def get_queryset(self):
+        """Optionally restricts the returned nodes to a given list of
+        metanode abbreviations by filtering against a comma-separated
+        `matanodes` query parameter in the URL.
+        """
+
+        queryset = Node.objects.all()
+        metanodes_str = self.request.query_params.get('metanodes', None)
+        if metanodes_str is not None:
+            metanodes = metanodes_str.split(',')
+            queryset = queryset.filter(metanode__abbreviation__in=metanodes)
+
+        return queryset
 
 
 class QueryPairView(APIView):
