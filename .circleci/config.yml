@@ -66,4 +66,4 @@ workflows:
             - tests
           filters:
             branches:
-              only: dhu/circleci_deploy
+              only: master
