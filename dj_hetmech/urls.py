@@ -19,7 +19,7 @@ from rest_framework import routers
 from dj_hetmech_app import views
 
 router = routers.DefaultRouter()
-router.register("nodes", views.NodeView)
+router.register("nodes", views.NodeView, basename="nodes")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
