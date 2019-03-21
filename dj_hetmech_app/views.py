@@ -38,7 +38,8 @@ class QueryPairView(APIView):
 
     def polish_pathcounts(self, source_id, target_id, pathcounts_data):
         """This function polishes pathcounts_data. The polishment includes:
-        * Copy nested fields in 'metapath' and 'dgp' to upper level;
+        * Add extra metapath-related fields;
+        * Copy nested fields in 'dgp' to upper level;
         * Make source/target consistent with query parameters in the URL;
         * Remove redundant fields;
         * Sort pathcounts by certain fields.
