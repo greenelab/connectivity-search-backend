@@ -44,8 +44,27 @@ jobs:
             python manage.py migrate
             python manage.py test
 
+  deploy:
+    machine:
+      enabled: true
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "a5:38:b8:18:7c:68:fc:9d:75:82:e7:2c:f4:04:1c:7e"
+      - run:
+          name: Deploy Over SSH
+          command: |
+            ssh $SSH_USER@$SSH_HOST "echo hello dhu"
+            #"cd /home/$SSH_USER/hetmech-backend; git co master; git pull; sudo /etc/init.d/supervisor restart"
+
 workflows:
   version: 2
   test:
     jobs:
       - tests
+      - deploy:
+          requires:
+            - tests
+          filters:
+            branches:
+              only: dhu/circleci_deploy
