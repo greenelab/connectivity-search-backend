@@ -46,9 +46,9 @@ class QueryPairView(APIView):
 
         for entry in pathcounts_data:
             # Retrieve hetio.hetnet.MetaPath object for metapath
-            metapath_entry = entry.pop('metapath')
+            original_metapath = entry.pop('metapath')
             from dj_hetmech_app.utils import metapath_from_abbrev
-            metapath = metapath_from_abbrev(metapath_entry['abbreviation'])
+            metapath = metapath_from_abbrev(original_metapath)
 
             # Copy all key/values in entry['dgp'] and remove 'dgp' field:
             entry.update(entry.pop('dgp'))

@@ -13,18 +13,8 @@ class DgpSerializer(serializers.ModelSerializer):
         exclude = ('id', 'metapath', )
 
 
-class CompactMetaPathSerilizer(serializers.ModelSerializer):
-    """This serializer only includes two fields in Metapath model.
-    It is defined specifically for PathCountDgpSerializer.
-    """
-    class Meta:
-        model = Metapath
-        fields = ('abbreviation', 'name', )
-
-
 class PathCountDgpSerializer(serializers.ModelSerializer):
     dgp = DgpSerializer()
-    metapath = CompactMetaPathSerilizer()
 
     class Meta:
         model = PathCount
