@@ -145,5 +145,5 @@ STATIC_URL = '/static/'
 # CORS config
 # https://pypi.org/project/django-cors-headers/
 CORS_ORIGIN_ALLOW_ALL = True
-CORS_URLS_REGEX = r'^/api/.*$'
+CORS_URLS_REGEX = r'^/v1/.*$'
 CORS_ALLOW_METHODS = ('GET', )

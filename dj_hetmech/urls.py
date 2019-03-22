@@ -23,6 +23,6 @@ router.register("nodes", views.NodeView, basename="nodes")
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include(router.urls)),
-    path('api/v1/querypair/', views.QueryPairView.as_view(), name="query-pair"),
+    path('v1/', include(router.urls)),
+    path('v1/querypair/', views.QueryPairView.as_view(), name="query-pair"),
 ]
