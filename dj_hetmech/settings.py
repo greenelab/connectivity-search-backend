@@ -48,7 +48,6 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'dj_hetmech_app',
-
 ]
 
 REST_FRAMEWORK = {
