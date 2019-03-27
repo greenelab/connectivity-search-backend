@@ -13,16 +13,15 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from dj_hetmech_app import views
 
 router = routers.DefaultRouter()
-router.register("nodes", views.NodeView, basename="nodes")
+router.register("nodes", views.NodeViewSet, basename="node")
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    path('v1/', views.api_root),
     path('v1/', include(router.urls)),
     path('v1/querypair/', views.QueryPairView.as_view(), name="query-pair"),
 ]

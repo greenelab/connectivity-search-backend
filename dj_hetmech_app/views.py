@@ -1,18 +1,27 @@
 from django.db.models import Q
 from rest_framework import filters, status
+from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
 from .models import Node, PathCount
 from .serializers import NodeSerializer, PathCountDgpSerializer
 
-# Create your views here.
+
+@api_view(['GET'])
+def api_root(request):
+    return Response({
+        'nodes': reverse('node-list', request=request),
+        'querypair': reverse('query-pair',  request=request)
+    })
+
 
 # The view that shows node information.
 # See the following page for "search" implementation and other filter options:
 # https://www.django-rest-framework.org/api-guide/filtering/
-class NodeView(ModelViewSet):
+class NodeViewSet(ModelViewSet):
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
