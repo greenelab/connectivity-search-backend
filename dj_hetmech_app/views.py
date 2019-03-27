@@ -14,7 +14,7 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
-        'querypair': reverse('query-pair',  request=request)
+        'querypair': reverse('query-pair',  request=request),
     })
 
 
