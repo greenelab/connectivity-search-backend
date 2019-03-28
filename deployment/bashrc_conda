@@ -1,0 +1,4 @@
+# Make sure that "conda" command is available
+if [ -f ~/miniconda3/etc/profile.d/conda.sh ]; then
+    source ~/miniconda3/etc/profile.d/conda.sh
+fi
