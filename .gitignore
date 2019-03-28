@@ -15,6 +15,3 @@ __pycache__
 # System files
 *~
 .vscode
-
-# Directory of static files for backend server deployment
-dj_hetmech/static
