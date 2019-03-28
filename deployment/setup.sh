@@ -36,12 +36,14 @@ apt install gcc --yes  # gcc is required by "pip install git+https://..."
 cd && git clone https://github.com/greenelab/hetmech-backend.git
 cd hetmech-backend
 conda env create --quiet --file environment.yml
-python manage.py makemigrations dj_hetmech_app
-python manage.py migrate
+conda activate hetmech-backend
 
 # "static" directory (used by API view in HTML format)
 mkdir -p ~/www/static && chmod -R 755 ~/www/
 python manage.py collectstatic
+
+python manage.py makemigrations dj_hetmech_app
+python manage.py migrate
 
 # Use supervisord to take care of Gunicorn daemon
 sudo apt install supervisor --yes
