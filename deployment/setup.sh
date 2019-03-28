@@ -2,8 +2,19 @@
 
 # This script should be run as user "ubuntu" only.
 if [ `whoami` != 'ubuntu' ]; then
-    echo "Error: current user is not 'ubuntu'"
-    exit
+    echo "Error: only the user 'ubuntu' is allowed to run this script."
+    exit 1
+fi
+
+# Make sure Django secrets file (secrets.yml) is available
+if [ -z $DJ_SECRETS_FILE ]; then
+    echo "Type in the location of Django secrets file, followed by [ENTER]:"
+    read DJ_SECRETS_FILE
+fi
+
+if ! [ -f "$DJ_SECRETS_FILE" ]; then
+    echo "Error: invalid Django secrets file."
+    exit 2
 fi
 
 # Update packages automatically using a daily cron job
@@ -42,9 +53,15 @@ conda env create --quiet --file ~/hetmech-backend/environment.yml
 conda activate hetmech-backend
 
 # Build "static" directory (used by API view in HTML format)
-mkdir -p ~/www/static && chmod 755 ~/www/ ~/www/static
+mkdir -p ~/www/static
+chmod 755 ~/www/ ~/www/static/
 
-# Copy "secrets.yml" into ~/hetmech-backend/dj_hetmech/, then continue
+# Copy $DJ_SECRETS_FILE as ~/hetmech-backend/dj_hetmech/secrets.yml
+if ! [ -f ~/hetmech-backend/dj_hetmech/secrets.yml ]; then
+    cp $DJ_SECRETS_FILE ~/hetmech-backend/dj_hetmech/secrets.yml
+fi
+
+# Build Django app
 cd ~/hetmech-backend
 python manage.py collectstatic --clear --no-input
 python manage.py makemigrations dj_hetmech_app
