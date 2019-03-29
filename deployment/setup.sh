@@ -52,16 +52,14 @@ source ~/miniconda/etc/profile.d/conda.sh
 conda env create --quiet --file ~/hetmech-backend/environment.yml
 conda activate hetmech-backend
 
-# Build "static" directory (used by API view in HTML format)
-mkdir -p ~/www/static
-chmod 755 ~/www/ ~/www/static/
-
 # Copy $DJ_SECRETS_FILE as ~/hetmech-backend/dj_hetmech/secrets.yml
 if ! [ -f ~/hetmech-backend/dj_hetmech/secrets.yml ]; then
     cp $DJ_SECRETS_FILE ~/hetmech-backend/dj_hetmech/secrets.yml
 fi
 
-# Build Django app
+# Create and populate "static" directory (for API view in HTML format)
+mkdir -p ~/www/static/
+chmod 755 ~/www/ ~/www/static/
 cd ~/hetmech-backend
 python manage.py collectstatic --clear --no-input
 
