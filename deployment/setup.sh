@@ -64,8 +64,6 @@ fi
 # Build Django app
 cd ~/hetmech-backend
 python manage.py collectstatic --clear --no-input
-python manage.py makemigrations dj_hetmech_app
-python manage.py migrate
 
 # Restart Gunicorn and Nginx
 sudo /etc/init.d/supervisor restart
