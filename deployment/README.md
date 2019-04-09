@@ -1,7 +1,6 @@
 # Deployment
 
-This directory includes a shell script `setup.sh` and a few configuration files
-for packages that are required for hetmech backend deployment.
+This directory includes a shell script `setup.sh` and a few configuration files for packages that are required for hetmech backend deployment.
 
 ## Prerequisites of Deployment Box:
  - OS: Ubuntu 18.04 or later
@@ -23,5 +22,4 @@ Here is a summary of what this script does:
  - Download hetmech-backend code from Github and create a Conda environment
  - Install/configure `supervisord`, which runs `Gunicorn` as a daemon
 
-Please reboot the deployment box at the end to ensure that the new
-configurations will become effective.
+Please reboot the deployment box at the end to ensure that the new configurations will become effective.
