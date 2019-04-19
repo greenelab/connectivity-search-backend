@@ -231,3 +231,10 @@ def get_hetionet_metagraph():
 def metapath_from_abbrev(abbreviation):
     metagraph = get_hetionet_metagraph()
     return metagraph.metapath_from_abbrev(abbreviation)
+
+
+@functools.lru_cache()
+def get_neo4j_driver():
+    from neo4j import GraphDatabase
+    driver = GraphDatabase.driver('bolt://neo4j.het.io')
+    return driver
