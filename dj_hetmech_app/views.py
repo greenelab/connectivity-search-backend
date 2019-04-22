@@ -14,7 +14,7 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
-        'querypair': reverse('query-pair',  request=request),
+        'querymetapath': reverse('query-metapath',  request=request),
     })
 
 
@@ -42,7 +42,7 @@ class NodeViewSet(ModelViewSet):
         return queryset
 
 
-class QueryPairView(APIView):
+class QueryMetapathView(APIView):
     http_method_names = ['get']
 
     def polish_pathcounts(self, source_id, target_id, pathcounts_data):
@@ -130,3 +130,38 @@ class QueryPairView(APIView):
         )
 
         return Response(data)
+
+
+class QueryPathView(APIView):
+    http_method_names = ['get']
+
+    def get(self, request):
+        # Validate "source" parameter
+        source_id = request.query_params.get('source', None)
+        if source_id is None:
+            return Response(
+                {'error': 'source parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            source_node = Node.objects.get(pk=source_id)
+        except:
+            return Response(
+                {'error': 'source node not found in database'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validate "target" parameter
+        target_id = request.query_params.get('target', None)
+        if target_id is None:
+            return Response(
+                {'error': 'target parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            target_node = Node.objects.get(pk=target_id)
+        except:
+            return Response(
+                {'error': 'target node not found in database'},
+                status=status.HTTP_404_NOT_FOUND
+            )
