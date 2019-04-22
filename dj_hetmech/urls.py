@@ -23,6 +23,6 @@ router.register("nodes", views.NodeViewSet, basename="node")
 urlpatterns = [
     path('v1/', views.api_root),
     path('v1/', include(router.urls)),
-    path('v1/querymetapath/', views.QueryMetapathView.as_view(), name="query-metapath"),
-    path('v1/querypath/', views.QueryPathView.as_view(), name="query-path"),
+    path('v1/query-metapaths/', views.QueryMetapathsView.as_view(), name="query-metapaths"),
+    path('v1/query-paths/', views.QueryPathsView.as_view(), name="query-paths"),
 ]

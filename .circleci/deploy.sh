@@ -10,7 +10,7 @@ git pull
 
 # Update conda env if needed
 if [ -n "$ENV_DIFF" ]; then
-    conda update --file $ENV_FILE
+    conda env update --file $ENV_FILE
 fi
 
 # Restart Gunicorn daemon

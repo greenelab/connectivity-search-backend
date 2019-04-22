@@ -14,7 +14,8 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
-        'querymetapath': reverse('query-metapath',  request=request),
+        'query-metapaths': reverse('query-metapaths',  request=request),
+        'query-paths': reverse('query-paths',  request=request),
     })
 
 
@@ -42,7 +43,7 @@ class NodeViewSet(ModelViewSet):
         return queryset
 
 
-class QueryMetapathView(APIView):
+class QueryMetapathsView(APIView):
     http_method_names = ['get']
 
     def polish_pathcounts(self, source_id, target_id, pathcounts_data):
@@ -132,7 +133,7 @@ class QueryMetapathView(APIView):
         return Response(data)
 
 
-class QueryPathView(APIView):
+class QueryPathsView(APIView):
     http_method_names = ['get']
 
     def get(self, request):
@@ -150,6 +151,7 @@ class QueryPathView(APIView):
                 {'error': 'source node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        source_identifier = source_node.get_cast_identifier()
 
         # Validate "target" parameter
         target_id = request.query_params.get('target', None)
@@ -165,3 +167,25 @@ class QueryPathView(APIView):
                 {'error': 'target node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
+        target_identifier = target_node.get_cast_identifier()
+
+        # Validate "metapath"
+        metapath = request.query_params.get('metapath', None)
+        if metapath is None:
+            return Response(
+                {'error': 'metapth parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # TODO: test metapath is a valid metapath abbreviation
+
+        max_paths = request.query_params.get('max-paths', '100')
+        max_paths = int(max_paths)
+        if max_paths < 0:
+            max_paths = None
+
+        from .utils.paths import get_paths
+        from .utils import get_hetionet_metagraph
+        metagraph = get_hetionet_metagraph()
+        output = get_paths(metagraph, metapath, source_identifier, target_identifier, limit=max_paths)
+        return Response(output)

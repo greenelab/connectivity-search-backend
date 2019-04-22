@@ -41,6 +41,10 @@ class Node(models.Model):
         # https://stackoverflow.com/a/42676612/4651668
         unique_together = ('metanode', 'identifier')
 
+    def get_cast_identifier(self):
+        import builtins
+        caster = getattr(builtins, self.identifier_type)
+        return caster(self.identifier)
 
 class Metapath(models.Model):
     abbreviation = models.CharField(primary_key=True, max_length=20)
