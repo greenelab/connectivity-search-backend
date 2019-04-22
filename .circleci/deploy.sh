@@ -10,7 +10,8 @@ git pull
 
 # Update conda env if needed
 if [ -n "$ENV_DIFF" ]; then
-    conda update --file $ENV_FILE
+    source ~/miniconda/etc/profile.d/conda.sh
+    conda env update --file $ENV_FILE
 fi
 
 # Restart Gunicorn daemon
