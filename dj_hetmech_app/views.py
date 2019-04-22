@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Node, Metapath, PathCount
+from .models import Node, PathCount
 from .serializers import NodeSerializer, PathCountDgpSerializer
 
 
