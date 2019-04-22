@@ -4,15 +4,17 @@ import functools
 import hetio.neo4j
 
 from dj_hetmech_app.utils import (
-    metapath_from_abbrev,
+    get_hetionet_metagraph,
     get_neo4j_driver,
+    metapath_from_abbrev,
 )
 
 
-def get_paths(metagraph, metapath, source_identifier, target_identifier, limit=None):
+def get_paths(metapath, source_identifier, target_identifier, limit=None):
     """
     Return JSON-serializable object with paths between two nodes for a given metapath.
     """
+    metagraph = get_hetionet_metagraph()
     metapath = metagraph.get_metapath(metapath)
     query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
@@ -60,7 +62,6 @@ MATCH (node)
 WHERE id(node) IN $node_ids
 RETURN
   id(node) AS neo4j_id,
-  node.identifier AS identifier,
   head(labels(node)) AS node_label,
   properties(node) AS data
 ORDER BY neo4j_id
@@ -76,6 +77,10 @@ def get_neo4j_node_info(node_ids):
     with driver.session() as session:
         results = session.run(cypher_node_query, node_ids=node_ids)
         results = [dict(record) for record in results]
+    metagraph = get_hetionet_metagraph()
+    for record in results:
+        metanode = metagraph.get_metanode(record['node_label'])
+        record['metanode'] = metanode.identifier
     id_to_info = {x['neo4j_id']: x for x in results}
     return id_to_info
 
@@ -103,5 +108,10 @@ def get_neo4j_rel_info(rel_ids):
     with driver.session() as session:
         results = session.run(cypher_rel_query, rel_ids=rel_ids)
         results = [dict(record) for record in results]
+    metagraph = get_hetionet_metagraph()
+    for record in results:
+        metaedge = metagraph.get_metaedge(record['rel_type'])
+        record['kind'] = metaedge.kind
+        record['directed'] = metaedge.direction == 'both'
     id_to_info = {x['neo4j_id']: x for x in results}
     return id_to_info
