@@ -10,6 +10,7 @@ git pull
 
 # Update conda env if needed
 if [ -n "$ENV_DIFF" ]; then
+    source ~/miniconda/etc/profile.d/conda.sh
     conda env update --file $ENV_FILE
 fi
 
