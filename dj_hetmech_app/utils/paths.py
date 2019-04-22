@@ -11,7 +11,7 @@ from dj_hetmech_app.utils import (
 
 def get_paths(metagraph, metapath, source_identifier, target_identifier, limit=None):
     """
-    Work in progress
+    Return JSON-serializable object with paths between two nodes for a given metapath.
     """
     metapath = metagraph.get_metapath(metapath)
     query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
@@ -37,7 +37,7 @@ def get_paths(metagraph, metapath, source_identifier, target_identifier, limit=N
         neo4j_node_ids.update(row['node_ids'])
         neo4j_rel_ids.update(row['rel_ids'])
         paths_obj.append(row)
-    
+
     node_id_to_info = get_neo4j_node_info(neo4j_node_ids)
     rel_id_to_info = get_neo4j_rel_info(neo4j_rel_ids)
     json_obj = {
@@ -68,6 +68,9 @@ ORDER BY neo4j_id
 
 
 def get_neo4j_node_info(node_ids):
+    """
+    Return information on nodes corresponding to the input neo4j node ids.
+    """
     node_ids = sorted(node_ids)
     driver = get_neo4j_driver()
     with driver.session() as session:
@@ -91,6 +94,10 @@ ORDER BY neo4j_id
 
 
 def get_neo4j_rel_info(rel_ids):
+    """
+    Return information on relationships corresponding to the
+    input neo4j relationship ids.
+    """
     rel_ids = sorted(rel_ids)
     driver = get_neo4j_driver()
     with driver.session() as session:

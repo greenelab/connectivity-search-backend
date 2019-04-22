@@ -1,3 +1,6 @@
+import json
+
+import hetio.readwrite
 from django.core.management.base import BaseCommand
 
 from dj_hetmech_app.utils.paths import (
@@ -9,17 +12,11 @@ from dj_hetmech_app.utils.paths import (
 
 class Command(BaseCommand):
 
-    help = 'Run a test.'
+    help = 'Call dj_hetmech_app.utils.paths.get_paths for prototyping purposes.'
 
     def handle(self, *args, **options):
-        import hetio.readwrite
-        import json
-        metagraph = hetio.readwrite.read_metagraph('https://github.com/hetio/hetionet/raw/master/hetnet/json/hetionet-v1.0-metagraph.json')
-        # id_to_info = get_neo4j_node_info(node_ids=[0, 1])
-        # print(id_to_info)
-
-        # id_to_info = get_neo4j_rel_info(rel_ids=[2029636, 1638425])
-        # print(id_to_info)
+        metagraph_url = 'https://github.com/hetio/hetionet/raw/727411d4796ba2858bc8e684ba407047c1615390/hetnet/json/hetionet-v1.0-metagraph.json'
+        metagraph = hetio.readwrite.read_metagraph(metagraph_url)
         json_obj = get_paths(
             metagraph=metagraph,
             metapath='CbGiGaD',
@@ -27,4 +24,5 @@ class Command(BaseCommand):
             target_identifier='DOID:0050742',  # nicotine dependency
             limit=100,
         )
-        print(json.dumps(json_obj, indent=2))
+        json_str = json.dumps(json_obj, indent=2)
+        print(json_str)
