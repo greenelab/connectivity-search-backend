@@ -112,6 +112,6 @@ def get_neo4j_rel_info(rel_ids):
     for record in results:
         metaedge = metagraph.get_metaedge(record['rel_type'])
         record['kind'] = metaedge.kind
-        record['directed'] = metaedge.direction == 'both'
+        record['directed'] = metaedge.direction != 'both'
     id_to_info = {x['neo4j_id']: x for x in results}
     return id_to_info
