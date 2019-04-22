@@ -9,11 +9,11 @@ from dj_hetmech_app.utils import (
 )
 
 
-def get_paths(metapath, source_identifier, target_identifier, limit=None):
+def get_paths(metagraph, metapath, source_identifier, target_identifier, limit=None):
     """
     Work in progress
     """
-    metapath = metagraph.metapath_from_abbrev(metapath)
+    metapath = metagraph.get_metapath(metapath)
     query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
         query += f'\nLIMIT {limit}'
@@ -37,6 +37,9 @@ def get_paths(metapath, source_identifier, target_identifier, limit=None):
         neo4j_node_ids.update(row['node_ids'])
         neo4j_rel_ids.update(row['rel_ids'])
         paths_obj.append(row)
+    
+    node_id_to_info = get_neo4j_node_info(neo4j_node_ids)
+    rel_id_to_info = get_neo4j_rel_info(neo4j_rel_ids)
     json_obj = {
         'query': {
             'source': source_identifier,
@@ -46,6 +49,8 @@ def get_paths(metapath, source_identifier, target_identifier, limit=None):
             'limit': limit,
         },
         'paths': paths_obj,
+        'nodes': node_id_to_info,
+        'relationships': rel_id_to_info,
     }
     return json_obj
 
@@ -58,11 +63,12 @@ RETURN
   node.identifier AS identifier,
   head(labels(node)) AS node_label,
   properties(node) AS data
+ORDER BY neo4j_id
 '''
 
 
 def get_neo4j_node_info(node_ids):
-    node_ids = list(node_ids)
+    node_ids = sorted(node_ids)
     driver = get_neo4j_driver()
     with driver.session() as session:
         results = session.run(cypher_node_query, node_ids=node_ids)
@@ -80,31 +86,15 @@ RETURN
   id(startNode(rel)) AS source_neo4j_id,
   id(endNode(rel)) AS target_neo4j_id,
   properties(rel) AS data
+ORDER BY neo4j_id
 '''
 
 
 def get_neo4j_rel_info(rel_ids):
-    rel_ids = list(rel_ids)
+    rel_ids = sorted(rel_ids)
     driver = get_neo4j_driver()
     with driver.session() as session:
         results = session.run(cypher_rel_query, rel_ids=rel_ids)
         results = [dict(record) for record in results]
     id_to_info = {x['neo4j_id']: x for x in results}
     return id_to_info
-
-
-if __name__ == '__main__':
-    import hetio.readwrite
-    metagraph = hetio.readwrite.read_metagraph('https://github.com/hetio/hetionet/raw/master/hetnet/json/hetionet-v1.0-metagraph.json')
-    id_to_info = get_neo4j_node_info(node_ids=[0, 1])
-    print(id_to_info)
-
-    id_to_info = get_neo4j_rel_info(rel_ids=[2029636, 1638425])
-    print(id_to_info)
-
-    json_obj = get_paths(
-        metapath='CbGiGaD',
-        source_identifier = 'DB01156',  # Bupropion
-        target_identifier = 'DOID:0050742',  # nicotine dependency
-    )
-    print(json.dumps(json_obj, indent=2))
