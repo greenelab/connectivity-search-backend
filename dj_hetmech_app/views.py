@@ -184,7 +184,7 @@ class QueryPathsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        # Validate "max-path" (default to 100 if not found in URL)
+        # Validate "max-paths" (default to 100 if not found in URL)
         max_paths = request.query_params.get('max-paths', '100')
         try:
             max_paths = int(max_paths)
