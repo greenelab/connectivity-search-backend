@@ -169,20 +169,13 @@ class QueryPathsView(APIView):
             )
         target_identifier = target_node.get_cast_identifier()
 
-        # Validate "metapath"
         metapath = request.query_params.get('metapath', None)
         if metapath is None:
             return Response(
                 {'error': 'metapath parameter not found in URL'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        try:
-            Metapath.objects.get(pk=metapath)
-        except:
-            return Response(
-                {'error': 'metapath abbreviation not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        ############ TODO: validate "metapath" is a valid abbreviation
 
         # Validate "max-paths" (default to 100 if not found in URL)
         max_paths = request.query_params.get('max-paths', '100')
