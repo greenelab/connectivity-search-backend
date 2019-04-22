@@ -175,13 +175,13 @@ class QueryPathsView(APIView):
                 {'error': 'metapath parameter not found in URL'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-        ############ TODO: validate "metapath" is a valid abbreviation
+        # TODO: validate "metapath" is a valid abbreviation
 
         # Validate "max-paths" (default to 100 if not found in URL)
         max_paths = request.query_params.get('max-paths', '100')
         try:
             max_paths = int(max_paths)
-        except:
+        except Exception:
             return Response(
                 {'error': 'max-paths is not a valid number'},
                 status=status.HTTP_400_BAD_REQUEST
@@ -191,7 +191,5 @@ class QueryPathsView(APIView):
             max_paths = None
 
         from .utils.paths import get_paths
-        from .utils import get_hetionet_metagraph
-        metagraph = get_hetionet_metagraph()
-        output = get_paths(metagraph, metapath, source_identifier, target_identifier, limit=max_paths)
+        output = get_paths(metapath, source_identifier, target_identifier, limit=max_paths)
         return Response(output)
