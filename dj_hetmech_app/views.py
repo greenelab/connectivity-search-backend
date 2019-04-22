@@ -6,7 +6,7 @@ from rest_framework.reverse import reverse
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Node, PathCount
+from .models import Node, Metapath, PathCount
 from .serializers import NodeSerializer, PathCountDgpSerializer
 
 
@@ -173,14 +173,27 @@ class QueryPathsView(APIView):
         metapath = request.query_params.get('metapath', None)
         if metapath is None:
             return Response(
-                {'error': 'metapth parameter not found in URL'},
+                {'error': 'metapath parameter not found in URL'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        try:
+            Metapath.objects.get(pk=metapath)
+        except:
+            return Response(
+                {'error': 'metapath abbreviation not found in database'},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        # Validate "max-path" (default to 100 if not found in URL)
+        max_paths = request.query_params.get('max-paths', '100')
+        try:
+            max_paths = int(max_paths)
+        except:
+            return Response(
+                {'error': 'max-paths is not a valid number'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        # TODO: test metapath is a valid metapath abbreviation
-
-        max_paths = request.query_params.get('max-paths', '100')
-        max_paths = int(max_paths)
         if max_paths < 0:
             max_paths = None
 
