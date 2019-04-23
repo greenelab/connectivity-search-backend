@@ -61,8 +61,12 @@ def get_paths(metapath, source_id, target_id, limit=None):
     rel_id_to_info = get_neo4j_rel_info(neo4j_rel_ids)
     json_obj = {
         'query': {
-            'source': source_identifier,
-            'target': target_identifier,
+            'source_id': source_id,
+            'target_id': target_id,
+            'source_metanode': source_record.metanode.identifier,
+            'target_metanode': target_record.metanode.identifier,
+            'source_identifier': source_identifier,
+            'target_identifier': target_identifier,
             'metapath': metapath.abbrev,
             'metapath_id': [edge.get_id() for edge in metapath],
             'metapath_score': metapath_score,
