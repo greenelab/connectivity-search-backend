@@ -10,12 +10,28 @@ from dj_hetmech_app.utils import (
 )
 
 
-def get_paths(metapath, source_identifier, target_identifier, limit=None):
+def get_paths(metapath, source_id, target_id, limit=None):
     """
     Return JSON-serializable object with paths between two nodes for a given metapath.
     """
     metagraph = get_hetionet_metagraph()
     metapath = metagraph.get_metapath(metapath)
+
+    from dj_hetmech_app.models import Node, PathCount
+    source_record = Node.objects.get(pk=source_id)
+    target_record = Node.objects.get(pk=target_id)
+    source_identifier = source_record.get_cast_identifier()
+    target_identifier = target_record.get_cast_identifier()
+    try:
+        metapath_record = PathCount.objects.get(metapath=metapath.abbrev, source=source_id, target=target_id)
+    except PathCount.DoesNotExist:
+        metapath_record = None
+    if metapath_record and metapath_record.p_value:
+        import math
+        metapath_score = -math.log10(metapath_record.p_value)
+    else:
+        metapath_score = None
+
     query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
         query += f'\nLIMIT {limit}'
@@ -31,11 +47,12 @@ def get_paths(metapath, source_identifier, target_identifier, limit=None):
     neo4j_node_ids = set()
     neo4j_rel_ids = set()
     paths_obj = []
-    for record in results:
+    for row_ in results:
         row = {
             'metapath': metapath.abbrev,
         }
-        row.update(record)
+        row.update(row_)
+        row['score'] = None if metapath_score is None else metapath_score * row['percent_of_DWPC']
         neo4j_node_ids.update(row['node_ids'])
         neo4j_rel_ids.update(row['rel_ids'])
         paths_obj.append(row)
@@ -48,6 +65,7 @@ def get_paths(metapath, source_identifier, target_identifier, limit=None):
             'target': target_identifier,
             'metapath': metapath.abbrev,
             'metapath_id': [edge.get_id() for edge in metapath],
+            'metapath_score': metapath_score,
             'limit': limit,
         },
         'paths': paths_obj,

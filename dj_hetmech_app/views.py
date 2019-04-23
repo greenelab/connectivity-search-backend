@@ -151,7 +151,6 @@ class QueryPathsView(APIView):
                 {'error': 'source node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        source_identifier = source_node.get_cast_identifier()
 
         # Validate "target" parameter
         target_id = request.query_params.get('target', None)
@@ -167,7 +166,6 @@ class QueryPathsView(APIView):
                 {'error': 'target node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
-        target_identifier = target_node.get_cast_identifier()
 
         metapath = request.query_params.get('metapath', None)
         if metapath is None:
@@ -191,5 +189,5 @@ class QueryPathsView(APIView):
             max_paths = None
 
         from .utils.paths import get_paths
-        output = get_paths(metapath, source_identifier, target_identifier, limit=max_paths)
+        output = get_paths(metapath, source_node.id, target_node.id, limit=max_paths)
         return Response(output)
