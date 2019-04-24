@@ -26,6 +26,7 @@ class Metanode(models.Model):
 
 
 class Node(models.Model):
+    id = models.IntegerField(primary_key=True)
     metanode = models.ForeignKey(to='Metanode', on_delete=models.PROTECT)
     identifier = models.CharField(max_length=50)
     identifier_type = models.CharField(max_length=50, choices=[
@@ -33,7 +34,6 @@ class Node(models.Model):
         ('int', 'integer'),
     ])
     name = models.CharField(max_length=200)
-    url = models.URLField(blank=True)
     data = JSONField()
 
     class Meta:
@@ -45,6 +45,7 @@ class Node(models.Model):
         import builtins
         caster = getattr(builtins, self.identifier_type)
         return caster(self.identifier)
+
 
 class Metapath(models.Model):
     abbreviation = models.CharField(primary_key=True, max_length=20)
