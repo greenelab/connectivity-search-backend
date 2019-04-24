@@ -21,8 +21,11 @@ from django.core.management.base import BaseCommand
 from hetmatpy.hetmat.archive import load_archive
 
 import dj_hetmech_app.models as hetmech_models
-from dj_hetmech_app.utils import timed
-
+from dj_hetmech_app.utils import (
+    get_hetionet_metagraph,
+    get_neo4j_driver,
+    timed,
+)
 
 class Command(BaseCommand):
 
@@ -38,6 +41,10 @@ class Command(BaseCommand):
             path='hetnet/matrix/hetionet-v1.0.hetmat.zip',
         )
         load_archive(path, self.hetmat_path)
+
+    @property
+    def _hetionet_metagraph(self):
+        return _hetionet_hetmat.metapath
 
     @property
     @functools.lru_cache()
@@ -111,7 +118,7 @@ class Command(BaseCommand):
         """
         Return a boolean to indicate whether to load the specified metapath into the database.
         """
-        metagraph = self._hetionet_graph.metagraph
+        metagraph = self._hetionet_metagraph
         metapath = metagraph.get_metapath(metapath)
         if len(metapath) > self.options['max_metapath_length']:
             return False
@@ -138,7 +145,7 @@ class Command(BaseCommand):
         metapath_df = pandas.read_csv(path, sep='\t').rename(columns={
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
-        metagraph = self._hetionet_graph.metagraph
+        metagraph = self._hetionet_metagraph
         objs = list()
         for row in metapath_df.itertuples():
             metapath = metagraph.metapath_from_abbrev(row.metapath)
@@ -158,20 +165,37 @@ class Command(BaseCommand):
         hetmech_models.Metapath.objects.bulk_create(objs)
 
     def _populate_node_table(self):
-        nodes = sorted(self._hetionet_graph.get_nodes())
-        objs = list()
-        for node in nodes:
-            objs.append(hetmech_models.Node(
-                metanode=self._get_metanode(node.metanode.identifier),
-                identifier=str(node.identifier),
-                identifier_type=node.identifier.__class__.__name__,
-                name=node.name,
-                url=node.data.get('url', ''),
-                data=node.data,
-            ))
-            if len(objs) >= self.options['batch_size']:
-                hetmech_models.Node.objects.bulk_create(objs)
-                objs = list()
+        """
+        Pulls nodes from neo4j as per https://github.com/greenelab/hetmech-backend/issues/36
+        """
+        metagraph = self._hetionet_metagraph
+        query = '''
+        MATCH (node)
+        RETURN
+          id(node) AS neo4j_id,
+          head(labels(node)) AS node_label,
+          properties(node) AS data
+        ORDER BY neo4j_id
+        '''
+        driver = get_neo4j_driver()
+        with driver.session as session:
+            results = session.run(query)
+            results = [dict(result) for result in results]
+            objs = list()
+            for result in results:
+                data = result['data']
+                identifier = data.pop('identifier')
+                metanode = metagraph.get_metanode(result['node_label'])
+                objs.append(hetmech_models.Node(
+                    metanode=self._get_metanode(metanode).identifier,
+                    identifier=str(identifier),
+                    identifier_type=identifier.__class__.__name__,
+                    name=data.pop('name'),
+                    data=data,
+                ))
+                if len(objs) >= self.options['batch_size']:
+                    hetmech_models.Node.objects.bulk_create(objs)
+                    objs = list()
         hetmech_models.Node.objects.bulk_create(objs)
 
     def _populate_degree_grouped_permutation_table(self, length):
@@ -240,7 +264,7 @@ class Command(BaseCommand):
             .order_by()
         )
         for metapath in metapaths:
-            metapath = self._hetionet_graph.metagraph.metapath_from_abbrev(metapath)
+            metapath = self._hetionet_metagraph.metapath_from_abbrev(metapath)
             rows = hetmatpy.pipeline.combine_dwpc_dgp(
                 graph=hetmat,
                 metapath=metapath,
@@ -283,9 +307,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         # Load configuration
         self.options = options
-        # Load hetmat and graph
+        # Download hetmat
         self._download_hetionet_hetmat()
-        self._hetionet_graph
+        self._hetionet_metagraph()
         # Populate tables
         timed(self._populate_metanode_table)()
         timed(self._populate_node_table)()
