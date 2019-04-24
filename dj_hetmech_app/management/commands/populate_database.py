@@ -26,6 +26,7 @@ from dj_hetmech_app.utils import (
     timed,
 )
 
+
 class Command(BaseCommand):
 
     help = 'Populate the database with Hetionet information'
@@ -43,7 +44,7 @@ class Command(BaseCommand):
 
     @property
     def _hetionet_metagraph(self):
-        return _hetionet_hetmat.metapath
+        return self._hetionet_hetmat.metagraph
 
     @property
     @functools.lru_cache()
@@ -177,7 +178,7 @@ class Command(BaseCommand):
         ORDER BY neo4j_id
         '''
         driver = get_neo4j_driver()
-        with driver.session as session:
+        with driver.session() as session:
             results = session.run(query)
             results = [dict(result) for result in results]
             objs = list()
@@ -186,7 +187,8 @@ class Command(BaseCommand):
                 identifier = data.pop('identifier')
                 metanode = metagraph.get_metanode(result['node_label'])
                 objs.append(hetmech_models.Node(
-                    metanode=self._get_metanode(metanode).identifier,
+                    id=result['neo4j_id'],
+                    metanode=self._get_metanode(metanode.identifier),
                     identifier=str(identifier),
                     identifier_type=identifier.__class__.__name__,
                     name=data.pop('name'),
@@ -308,7 +310,7 @@ class Command(BaseCommand):
         self.options = options
         # Download hetmat
         self._download_hetionet_hetmat()
-        self._hetionet_metagraph()
+        self._hetionet_metagraph
         # Populate tables
         timed(self._populate_metanode_table)()
         timed(self._populate_node_table)()
