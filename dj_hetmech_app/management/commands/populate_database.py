@@ -123,13 +123,9 @@ class Command(BaseCommand):
         if len(metapath) > self.options['max_metapath_length']:
             return False
         if self.options['reduced_metapaths']:
-            keep = {
-                ('Compound', 'Disease'),
-            }
-            for pair in list(keep):
-                keep.add((pair[1], pair[0]))
-            endpoints = metapath.source().identifier, metapath.target().identifier
-            if endpoints not in keep:
+            source_count = self._get_metanode(metapath.source().identifier).n_nodes
+            target_count = self._get_metanode(metapath.target().identifier).n_nodes
+            if source_count * target_count > 3_000_000:
                 return False
             metaedge_GcG = metagraph.get_metaedge('GcG')
             if {metaedge_GcG, metaedge_GcG.inverse} & set(metapath):
