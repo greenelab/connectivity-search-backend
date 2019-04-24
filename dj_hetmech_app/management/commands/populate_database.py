@@ -22,7 +22,6 @@ from hetmatpy.hetmat.archive import load_archive
 
 import dj_hetmech_app.models as hetmech_models
 from dj_hetmech_app.utils import (
-    get_hetionet_metagraph,
     get_neo4j_driver,
     timed,
 )
