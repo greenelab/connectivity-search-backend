@@ -18,12 +18,16 @@ def get_paths(metapath, source_id, target_id, limit=None):
     metapath = metagraph.get_metapath(metapath)
 
     from dj_hetmech_app.models import Node, PathCount
+    from django.db.models import Q
     source_record = Node.objects.get(pk=source_id)
     target_record = Node.objects.get(pk=target_id)
     source_identifier = source_record.get_cast_identifier()
     target_identifier = target_record.get_cast_identifier()
     try:
-        metapath_record = PathCount.objects.get(metapath=metapath.abbrev, source=source_id, target=target_id)
+        metapath_record = PathCount.objects.get(
+            Q(metapath=metapath.abbrev, source=source_id, target=target_id) |
+            Q(metapath=metapath.inverse.abbrev, source=target_id, target=source_id)
+        )
     except PathCount.DoesNotExist:
         metapath_record = None
     if metapath_record and metapath_record.p_value:
