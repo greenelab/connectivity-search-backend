@@ -12,7 +12,7 @@ from dj_hetmech_app.utils import (
 
 def get_paths(metapath, source_id, target_id, limit=None):
     """
-    Return JSON-serializable object with paths between two nodes for a given metapath.
+    Return JSON-serializeable object with paths between two nodes for a given metapath.
     """
     metagraph = get_hetionet_metagraph()
     metapath = metagraph.get_metapath(metapath)
