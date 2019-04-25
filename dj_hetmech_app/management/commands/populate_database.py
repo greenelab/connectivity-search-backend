@@ -142,9 +142,17 @@ class Command(BaseCommand):
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
         metagraph = self._hetionet_metagraph
+        metapath_df['metapath_obj'] = metapath_df.map(metagraph.get_metapath)
+        # Add n_similar column with the number of other metapaths with the
+        # same source and target metanodes and length.
+        metapath_df = metapath_df.merge(
+            metapath_df
+            .groupby(['source', 'target', 'length'])
+            .apply(len).rename('n_similar').reset_index()
+        )
         objs = list()
         for row in metapath_df.itertuples():
-            metapath = metagraph.metapath_from_abbrev(row.metapath)
+            metapath = row.metapath_obj
             if not self._keep_metapath(metapath):
                 continue
             objs.append(hetmech_models.Metapath(
