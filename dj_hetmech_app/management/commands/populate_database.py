@@ -157,14 +157,12 @@ class Command(BaseCommand):
         metagraph = self._hetionet_metagraph
         metapath_df['metapath_obj'] = metapath_df.metapath.map(metagraph.get_metapath)
         metapath_df = metapath_df[metapath_df.metapath_obj.map(self._keep_metapath)]
+        metapath_df['source'] = metapath_df.metapath_obj.map(lambda x: x.source().identifier)
+        metapath_df['target'] = metapath_df.metapath_obj.map(lambda x: x.target().identifier)
         # Add n_similar column with the number of other metapaths with the
         # same source and target metanodes and length.
         metapath_df = metapath_df.merge(
             metapath_df
-            .assign(
-                source=metapath_df.metapath_obj.map(lambda x: x.source().identifier),
-                target=metapath_df.metapath_obj.map(lambda x: x.target().identifier),
-            )
             .groupby(['source', 'target', 'length'])
             .apply(len).rename('n_similar').reset_index()
         )
