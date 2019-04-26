@@ -123,14 +123,27 @@ class Command(BaseCommand):
         if len(metapath) > self.options['max_metapath_length']:
             return False
         if self.options['reduced_metapaths']:
-            source_count = self._get_metanode(metapath.source().identifier).n_nodes
-            target_count = self._get_metanode(metapath.target().identifier).n_nodes
-            if source_count * target_count > 3_000_000:
+            keep = {
+                ('Compound', 'Disease'),
+            }
+            for pair in list(keep):
+                keep.add((pair[1], pair[0]))
+            endpoints = metapath.source().identifier, metapath.target().identifier
+            if endpoints not in keep:
                 return False
             metaedge_GcG = metagraph.get_metaedge('GcG')
             if {metaedge_GcG, metaedge_GcG.inverse} & set(metapath):
                 return False
         return True
+
+    def _get_metapath_p_threshold(self, row):
+        """
+        Return p-value threshold for a metapath
+        """
+        if row.length == 1:
+            return 1.0
+        p_threshold = 5 * row.n_pairs ** -0.3 / row.n_similar
+        return p_threshold
 
     def _populate_metapath_table(self):
         path = self.github_download(
@@ -142,19 +155,23 @@ class Command(BaseCommand):
             'dwpc-0.5_raw_mean': 'dwpc_raw_mean',
         })
         metagraph = self._hetionet_metagraph
-        metapath_df['metapath_obj'] = metapath_df.map(metagraph.get_metapath)
+        metapath_df['metapath_obj'] = metapath_df.metapath.map(metagraph.get_metapath)
+        metapath_df = metapath_df[metapath_df.metapath_obj.map(self._keep_metapath)]
         # Add n_similar column with the number of other metapaths with the
         # same source and target metanodes and length.
         metapath_df = metapath_df.merge(
             metapath_df
+            .assign(
+                source=metapath_df.metapath_obj.map(lambda x: x.source().identifier),
+                target=metapath_df.metapath_obj.map(lambda x: x.target().identifier),
+            )
             .groupby(['source', 'target', 'length'])
             .apply(len).rename('n_similar').reset_index()
         )
+        metapath_df['p_threshold'] = [self._get_metapath_p_threshold(x) for x in metapath_df.itertuples()]
         objs = list()
         for row in metapath_df.itertuples():
             metapath = row.metapath_obj
-            if not self._keep_metapath(metapath):
-                continue
             objs.append(hetmech_models.Metapath(
                 abbreviation=metapath.abbrev,
                 name=metapath.get_unicode_str(),
@@ -165,6 +182,8 @@ class Command(BaseCommand):
                 path_count_mean=row.pc_mean,
                 path_count_max=row.pc_max,
                 dwpc_raw_mean=row.dwpc_raw_mean,
+                n_similar=row.n_similar,
+                p_threshold=row.p_threshold,
             ))
         hetmech_models.Metapath.objects.bulk_create(objs)
 
@@ -270,17 +289,18 @@ class Command(BaseCommand):
         )
         for metapath in metapaths:
             metapath = self._hetionet_metagraph.metapath_from_abbrev(metapath)
+            metapath_record = self._get_metapath(metapath)
             rows = hetmatpy.pipeline.combine_dwpc_dgp(
                 graph=hetmat,
                 metapath=metapath,
                 damping=0.5,
                 ignore_zeros=True,
-                max_p_value=0.1,
+                max_p_value=metapath_record.p_threshold,
             )
             objs = list()
             for row in rows:
                 objs.append(hetmech_models.PathCount(
-                    metapath=self._get_metapath(metapath),
+                    metapath=metapath_record,
                     source=self._get_node(metapath.source().identifier, row['source_id']),
                     target=self._get_node(metapath.target().identifier, row['target_id']),
                     dgp=self._get_dgp(str(metapath), row['source_degree'], row['target_degree']),
