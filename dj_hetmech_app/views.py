@@ -58,10 +58,14 @@ class QueryMetapathsView(APIView):
         for entry in pathcounts_data:
             # Retrieve hetio.hetnet.MetaPath object for metapath
             from dj_hetmech_app.utils import metapath_from_abbrev
-            metapath = metapath_from_abbrev(entry.pop('metapath'))
+            serialized_metapath = entry.pop('metapath')
+            metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
 
             # Copy all key/values in entry['dgp'] and remove 'dgp' field:
             entry.update(entry.pop('dgp'))
+
+            for key, value in serialized_metapath.items():
+                entry[f'metapath_{key}'] = value
 
             # If necessary, swap "source_degree" and "target_degree" values.
             entry['reversed'] = int(source_id) != entry['source']
@@ -70,9 +74,10 @@ class QueryMetapathsView(APIView):
                 entry['source_degree'], entry['target_degree'] = (
                     entry['target_degree'], entry['source_degree']
                 )
+
             entry['metapath_abbreviation'] = metapath.abbrev
             entry['metapath_name'] = metapath.get_unicode_str()
-            entry['metaedges'] = [metaedge.get_id() for metaedge in metapath]
+            entry['metapath_metaedges'] = [metaedge.get_id() for metaedge in metapath]
 
             # Remove fields
             for key in 'source', 'target':

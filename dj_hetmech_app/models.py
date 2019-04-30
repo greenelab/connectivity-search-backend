@@ -93,4 +93,4 @@ class PathCount(models.Model):
 
     def get_adjusted_p_value(self):
         """Return Bonferroni adjusted p-value."""
-        return min(1.0, self.p_value * self.metapath__n_similar)
+        return min(1.0, self.p_value * self.metapath.n_similar)
