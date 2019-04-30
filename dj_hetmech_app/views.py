@@ -62,7 +62,8 @@ class QueryMetapathsView(APIView):
             metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
 
             # Copy all key/values in entry['dgp'] and remove 'dgp' field:
-            entry.update(entry.pop('dgp'))
+            for key, value in entry.pop('dgp').items():
+                entry[f'dgp_{key}'] = value
 
             for key, value in serialized_metapath.items():
                 entry[f'metapath_{key}'] = value
