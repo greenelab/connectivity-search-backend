@@ -14,8 +14,8 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
-        'query-metapaths': reverse('query-metapaths',  request=request),
-        'query-paths': reverse('query-paths',  request=request),
+        'query-metapaths': reverse('query-metapaths', request=request),
+        'query-paths': reverse('query-paths', request=request),
     })
 
 
@@ -68,8 +68,8 @@ class QueryMetapathsView(APIView):
                 entry[f'metapath_{key}'] = value
 
             # If necessary, swap "source_degree" and "target_degree" values.
-            entry['reversed'] = int(source_id) != entry['source']
-            if entry['reversed']:
+            entry['metapath_reversed'] = int(source_id) != entry['source']
+            if entry['metapath_reversed']:
                 metapath = metapath.inverse
                 entry['source_degree'], entry['target_degree'] = (
                     entry['target_degree'], entry['source_degree']
