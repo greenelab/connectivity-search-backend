@@ -32,7 +32,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
         metapath_record = None
     if metapath_record and metapath_record.p_value:
         import math
-        metapath_score = -math.log10(metapath_record.p_value)
+        metapath_score = -math.log10(metapath_record.get_adjusted_p_value())
     else:
         metapath_score = None
 

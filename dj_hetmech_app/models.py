@@ -57,6 +57,8 @@ class Metapath(models.Model):
     path_count_mean = models.FloatField()
     path_count_max = models.PositiveIntegerField()
     dwpc_raw_mean = models.FloatField()
+    n_similar = models.PositiveIntegerField()
+    p_threshold = models.FloatField()
 
 
 class DegreeGroupedPermutation(models.Model):
@@ -88,3 +90,7 @@ class PathCount(models.Model):
         indexes = [
             models.Index(fields=['source', 'target']),
         ]
+
+    def get_adjusted_p_value(self):
+        """Return Bonferroni adjusted p-value."""
+        return min(1.0, self.p_value * self.metapath.n_similar)

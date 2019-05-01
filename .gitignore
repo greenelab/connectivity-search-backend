@@ -3,6 +3,7 @@ secrets.yml
 
 # Database files
 dj_hetmech_app/migrations
+hetmech-pg_dump.sql.gz
 db.sqlite3
 /database
 
