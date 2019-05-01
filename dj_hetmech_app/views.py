@@ -72,8 +72,8 @@ class QueryMetapathsView(APIView):
             entry['metapath_reversed'] = int(source_id) != entry['source']
             if entry['metapath_reversed']:
                 metapath = metapath.inverse
-                entry['source_degree'], entry['target_degree'] = (
-                    entry['target_degree'], entry['source_degree']
+                entry['dgp_source_degree'], entry['dgp_target_degree'] = (
+                    entry['dgp_target_degree'], entry['dgp_source_degree']
                 )
 
             entry['metapath_abbreviation'] = metapath.abbrev
