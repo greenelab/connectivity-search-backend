@@ -1,5 +1,6 @@
-import json
 import functools
+import json
+import logging
 
 import hetio.neo4j
 
@@ -23,13 +24,23 @@ def get_paths(metapath, source_id, target_id, limit=None):
     target_record = Node.objects.get(pk=target_id)
     source_identifier = source_record.get_cast_identifier()
     target_identifier = target_record.get_cast_identifier()
-    try:
-        metapath_record = PathCount.objects.get(
-            Q(metapath=metapath.abbrev, source=source_id, target=target_id) |
-            Q(metapath=metapath.inverse.abbrev, source=target_id, target=source_id)
+
+    metapath_qs = PathCount.objects.filter(
+        Q(metapath=metapath.abbrev, source=source_id, target=target_id) |
+        Q(metapath=metapath.inverse.abbrev, source=target_id, target=source_id)
+    )
+    metapath_record = metapath_qs.first()
+    metapath_qs_count = metapath_qs.count()
+    if metapath_qs_count > 1:
+        # see https://github.com/greenelab/hetmech-backend/issues/43
+        import pandas
+        qs_df = pandas.DataFrame.from_records(metapath_qs.all().values())
+        logging.warning(
+            f'get_paths returned {metapath_qs_count} results, '
+            'but database should not have more than one row (including inverse orientation) for '
+            f'{metapath.abbrev} from {source_id} to {target_id}.\n'
+            + qs_df.to_string(index=False)
         )
-    except PathCount.DoesNotExist:
-        metapath_record = None
     if metapath_record and metapath_record.p_value:
         import math
         metapath_score = -math.log10(metapath_record.get_adjusted_p_value())
