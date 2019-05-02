@@ -2,17 +2,18 @@ name: hetmech-backend
 channels:
   - conda-forge
 dependencies:
-  - django=2.2
   - django-cors-headers=2.5.0
   - django-extensions=2.1.6
   - django-filter=2.1.0
-  - djangorestframework=3.9.2
+  - django=2.2.1
+  - djangorestframework=3.9.3
   - graphviz=2.40.1
   - gunicorn=19.9.0
   - ipykernel=5.1.0
   - neo4j-python-driver=1.7.2
+  - numpy=1.16.3
   - pandas=0.24.2
-  - pip=19.0.3
+  - pip=19.1
   - psycopg2=2.8.2
   - pydot=1.4.1
   - python=3.7.3
@@ -21,5 +22,5 @@ dependencies:
   - scipy=1.2.1
   - sqlparse=0.3.0
   - pip:
-    - git+https://github.com/hetio/hetio@6afb591ef52597e8ee7ec2612eb3afc376192f35
-    - git+https://github.com/hetio/hetmatpy@4de8877c93fdaea29de4ea72c4e61499dd4c02e1
+    - git+https://github.com/hetio/hetio@84f166510bc10c3560430011ff3e6d0b731d878b
+    - git+https://github.com/hetio/hetmatpy@b49e4376f101adf06fd89f82cab91e160ec39628
