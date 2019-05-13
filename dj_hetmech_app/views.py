@@ -14,6 +14,7 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
+        'random-node-pair': reverse('random-node-pair', request=request),
         'query-metapaths': reverse('query-metapaths', request=request),
         'query-paths': reverse('query-paths', request=request),
     })
@@ -41,6 +42,33 @@ class NodeViewSet(ModelViewSet):
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
 
         return queryset
+
+
+class RandomNodePairView(APIView):
+    """
+    Return a random source and target node for which at least one metapath with path
+    count information exists in the database. The implementation chooses a random row
+    from the PathCount table, such that source-target pairs with many metapaths are
+    more likely to be selected than source-target pairs with few metapaths.
+    """
+    http_method_names = ['get']
+
+    def get(self, request):
+        import random
+        # https://stackoverflow.com/q/962619/4651668
+        # https://stackoverflow.com/a/39751708/4651668
+        n_rows = PathCount.objects.last().id
+        random_index = random.randint(0, n_rows - 1)
+        pathcount_row = PathCount.objects.get(pk=random_index)
+        n_pathcounts = PathCount.objects.filter(source=pathcount_row.source, target=pathcount_row.target).count()
+
+        data = {
+            'source_id': pathcount_row.source.id,
+            'target_id': pathcount_row.target.id,
+            'random_index': random_index,
+            'n_pathcounts': n_pathcounts,
+        }
+        return Response(data)
 
 
 class QueryMetapathsView(APIView):
