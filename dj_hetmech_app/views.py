@@ -57,16 +57,17 @@ class RandomNodePairView(APIView):
         import random
         # https://stackoverflow.com/q/962619/4651668
         # https://stackoverflow.com/a/39751708/4651668
-        n_rows = PathCount.objects.last().id
-        random_index = random.randint(0, n_rows - 1)
-        pathcount_row = PathCount.objects.get(pk=random_index)
-        n_pathcounts = PathCount.objects.filter(source=pathcount_row.source, target=pathcount_row.target).count()
+        max_id = PathCount.objects.last().id
+        random_id = random.randint(0, max_id)
+        pathcount_row = PathCount.objects.get(pk=random_id)
+        n_metapaths = PathCount.objects.filter(source=pathcount_row.source, target=pathcount_row.target).count()
 
         data = {
             'source_id': pathcount_row.source.id,
             'target_id': pathcount_row.target.id,
-            'random_index': random_index,
-            'n_pathcounts': n_pathcounts,
+            'n_metapaths': n_metapaths,
+            'pathcount_table_random_id': random_id,
+            'pathcount_table_max_id': max_id,
         }
         return Response(data)
 
