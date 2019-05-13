@@ -46,7 +46,7 @@ class NodeViewSet(ModelViewSet):
 class QueryMetapathsView(APIView):
     http_method_names = ['get']
 
-    def polish_pathcounts(self, source_id, target_id, pathcounts_data):
+    def polish_pathcounts(self, source_node, target_node, pathcounts_data):
         """This function polishes pathcounts_data. The polishment includes:
         * Add extra metapath-related fields;
         * Copy nested fields in 'dgp' to upper level;
@@ -54,10 +54,11 @@ class QueryMetapathsView(APIView):
         * Remove redundant fields;
         * Sort pathcounts by certain fields.
         """
+        from dj_hetmech_app.utils import metapath_from_abbrev
+        from hetio.neo4j import construct_pdp_query
 
         for entry in pathcounts_data:
             # Retrieve hetio.hetnet.MetaPath object for metapath
-            from dj_hetmech_app.utils import metapath_from_abbrev
             serialized_metapath = entry.pop('metapath')
             metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
 
@@ -69,7 +70,7 @@ class QueryMetapathsView(APIView):
                 entry[f'metapath_{key}'] = value
 
             # If necessary, swap "source_degree" and "target_degree" values.
-            entry['metapath_reversed'] = int(source_id) != entry['source']
+            entry['metapath_reversed'] = int(source_node.id) != entry['source']
             if entry['metapath_reversed']:
                 metapath = metapath.inverse
                 entry['dgp_source_degree'], entry['dgp_target_degree'] = (
@@ -79,6 +80,14 @@ class QueryMetapathsView(APIView):
             entry['metapath_abbreviation'] = metapath.abbrev
             entry['metapath_name'] = metapath.get_unicode_str()
             entry['metapath_metaedges'] = [metaedge.get_id() for metaedge in metapath]
+            entry['cypher_query'] = (
+                construct_pdp_query(metapath, property='identifier', path_style='string')
+                .replace('{ source }', f"{source_node.get_cast_identifier().__repr__()} // {source_node.name}")
+                .replace('{ target }', f"{target_node.get_cast_identifier().__repr__()} // {target_node.name}")
+                .replace('{ w }', '0.5')
+                .replace('RETURN', 'RETURN\n  path AS neo4j_path,')
+                + '\nLIMIT 10'
+            )
 
             # Remove fields
             for key in 'source', 'target':
@@ -131,8 +140,8 @@ class QueryMetapathsView(APIView):
         data['source'] = NodeSerializer(source_node).data
         data['target'] = NodeSerializer(target_node).data
         data['path_counts'] = self.polish_pathcounts(
-            source_id,
-            target_id,
+            source_node,
+            target_node,
             PathCountDgpSerializer(path_counts, many=True).data
         )
 
