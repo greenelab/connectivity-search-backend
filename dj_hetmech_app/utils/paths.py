@@ -97,7 +97,7 @@ WHERE id(node) IN $node_ids
 RETURN
   id(node) AS neo4j_id,
   head(labels(node)) AS node_label,
-  properties(node) AS data
+  properties(node) AS properties
 ORDER BY neo4j_id
 '''
 
@@ -127,7 +127,7 @@ RETURN
   type(rel) AS rel_type,
   id(startNode(rel)) AS source_neo4j_id,
   id(endNode(rel)) AS target_neo4j_id,
-  properties(rel) AS data
+  properties(rel) AS properties
 ORDER BY neo4j_id
 '''
 

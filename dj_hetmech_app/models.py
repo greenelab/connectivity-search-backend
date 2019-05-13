@@ -34,7 +34,7 @@ class Node(models.Model):
         ('int', 'integer'),
     ])
     name = models.CharField(max_length=200)
-    data = JSONField()
+    properties = JSONField(db_column='data')  # Migrate database field in future
 
     class Meta:
         # unique_together implies index_together in postgres
