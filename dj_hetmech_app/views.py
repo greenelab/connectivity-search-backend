@@ -13,8 +13,8 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 @api_view(['GET'])
 def api_root(request):
     """
-    Hetionet connectivity search API. This API is used to power https://search.het.io.
-    The codebase for this API is available at https://github.com/greenelab/hetmech-backend.
+    Hetionet connectivity search API. This API is used to power <https://search.het.io>.
+    The codebase for this API is available at <https://github.com/greenelab/hetmech-backend>.
     Please use GitHub Issues for any questions or feedback.
     """
     return Response({
