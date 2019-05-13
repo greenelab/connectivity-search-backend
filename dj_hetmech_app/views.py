@@ -58,6 +58,8 @@ class QueryMetapathsView(APIView):
         from hetio.neo4j import construct_pdp_query
 
         for entry in pathcounts_data:
+            entry_source_node, entry_target_node = source_node, target_node
+
             # Retrieve hetio.hetnet.MetaPath object for metapath
             serialized_metapath = entry.pop('metapath')
             metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
@@ -72,6 +74,7 @@ class QueryMetapathsView(APIView):
             # If necessary, swap "source_degree" and "target_degree" values.
             entry['metapath_reversed'] = int(source_node.id) != entry['source']
             if entry['metapath_reversed']:
+                entry_source_node, entry_target_node = target_node, source_node
                 metapath = metapath.inverse
                 entry['dgp_source_degree'], entry['dgp_target_degree'] = (
                     entry['dgp_target_degree'], entry['dgp_source_degree']
