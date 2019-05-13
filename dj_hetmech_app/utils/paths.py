@@ -1,5 +1,3 @@
-import functools
-import json
 import logging
 
 import hetio.neo4j
@@ -7,7 +5,6 @@ import hetio.neo4j
 from dj_hetmech_app.utils import (
     get_hetionet_metagraph,
     get_neo4j_driver,
-    metapath_from_abbrev,
 )
 
 
@@ -52,7 +49,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
         query += f'\nLIMIT {limit}'
     driver = get_neo4j_driver()
     neo4j_params = {
-        'source': source_identifier, 
+        'source': source_identifier,
         'target': target_identifier,
         'w': 0.5,
     }

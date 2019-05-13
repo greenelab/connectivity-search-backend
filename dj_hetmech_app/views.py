@@ -12,6 +12,11 @@ from .serializers import NodeSerializer, PathCountDgpSerializer
 
 @api_view(['GET'])
 def api_root(request):
+    """
+    Hetionet connectivity search API. This API is used to power https://search.het.io.
+    The codebase for this API is available at https://github.com/greenelab/hetmech-backend.
+    Please use GitHub Issues for any questions or feedback.
+    """
     return Response({
         'nodes': reverse('node-list', request=request),
         'random-node-pair': reverse('random-node-pair', request=request),
@@ -20,13 +25,15 @@ def api_root(request):
     })
 
 
-# The view that shows node information.
-# See the following page for "search" implementation and other filter options:
-# https://www.django-rest-framework.org/api-guide/filtering/
 class NodeViewSet(ModelViewSet):
+    """
+    Return nodes in the network that match the search term (sometimes partially).
+    """
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
+    # See the following page for "search" implementation and other filter options:
+    # https://www.django-rest-framework.org/api-guide/filtering/
     search_fields = ('identifier', 'metanode__identifier', 'name')
 
     def get_queryset(self):
@@ -72,10 +79,18 @@ class RandomNodePairView(APIView):
 
 
 class QueryMetapathsView(APIView):
+    """
+    Return metapaths between a given source and target node whose path count
+    information is stored in the database. The database only stores a single
+    orientation of a metapath. For example, if GpPpGaD is stored between the
+    given source and target node, DaGpPpG would not also be stored. Therefore,
+    both orientations of a metapath are searched against the PathCount table.
+    """
     http_method_names = ['get']
 
     def polish_pathcounts(self, source_node, target_node, pathcounts_data):
-        """This function polishes pathcounts_data. The polishment includes:
+        """
+        This function polishes pathcounts_data. The polishment includes:
         * Add extra metapath-related fields;
         * Copy nested fields in 'dgp' to upper level;
         * Make source/target consistent with query parameters in the URL;
@@ -138,7 +153,7 @@ class QueryMetapathsView(APIView):
             )
         try:
             source_node = Node.objects.get(pk=source_id)
-        except:
+        except Node.DoesNotExist:
             return Response(
                 {'error': 'source node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
@@ -153,7 +168,7 @@ class QueryMetapathsView(APIView):
             )
         try:
             target_node = Node.objects.get(pk=target_id)
-        except:
+        except Node.DoesNotExist:
             return Response(
                 {'error': 'target node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
@@ -177,6 +192,12 @@ class QueryMetapathsView(APIView):
 
 
 class QueryPathsView(APIView):
+    """
+    For a given source node, target node, and metapath, return the actual paths comprising the path count / DWPC.
+    These paths have not been pre-computed and are extracted on-the-fly from the Hetionet Neo4j Browser.
+    Therefore, it is advisable to avoid querying a source-target-metapath pair with a path count exceeding 10,000.
+    Because results are ordered by PDP / percent_of_DWPC, reducing max_paths does not prevent neo4j from having to exhaustively traverse all paths.
+    """
     http_method_names = ['get']
 
     def get(self, request):
@@ -189,7 +210,7 @@ class QueryPathsView(APIView):
             )
         try:
             source_node = Node.objects.get(pk=source_id)
-        except:
+        except Node.DoesNotExist:
             return Response(
                 {'error': 'source node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
@@ -204,7 +225,7 @@ class QueryPathsView(APIView):
             )
         try:
             target_node = Node.objects.get(pk=target_id)
-        except:
+        except Node.DoesNotExist:
             return Response(
                 {'error': 'target node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
