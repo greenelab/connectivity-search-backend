@@ -120,7 +120,7 @@ def get_neo4j_node_info(node_ids):
 
 
 cypher_rel_query = '''\
-MATCH ()-[rel]-()
+MATCH ()-[rel]->()
 WHERE id(rel) in $rel_ids
 RETURN
   id(rel) AS neo4j_id,
