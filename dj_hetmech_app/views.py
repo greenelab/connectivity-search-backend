@@ -55,8 +55,7 @@ class RandomNodePairView(APIView):
 
     def get(self, request):
         import random
-        # https://stackoverflow.com/q/962619/4651668
-        # https://stackoverflow.com/a/39751708/4651668
+        # More info on random row lookup at https://stackoverflow.com/a/56119397/4651668
         max_id = PathCount.objects.last().id
         random_id = random.randint(0, max_id)
         pathcount_row = PathCount.objects.get(pk=random_id)
