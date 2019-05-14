@@ -24,3 +24,4 @@ dependencies:
   - pip:
     - git+https://github.com/hetio/hetio@84f166510bc10c3560430011ff3e6d0b731d878b
     - git+https://github.com/hetio/hetmatpy@80222bc83098b0437cd5520fb11ab8cd184ce216
+    - markdown==3.1

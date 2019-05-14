@@ -1,5 +1,3 @@
-import functools
-import json
 import logging
 
 import hetio.neo4j
@@ -7,7 +5,6 @@ import hetio.neo4j
 from dj_hetmech_app.utils import (
     get_hetionet_metagraph,
     get_neo4j_driver,
-    metapath_from_abbrev,
 )
 
 
@@ -52,7 +49,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
         query += f'\nLIMIT {limit}'
     driver = get_neo4j_driver()
     neo4j_params = {
-        'source': source_identifier, 
+        'source': source_identifier,
         'target': target_identifier,
         'w': 0.5,
     }
@@ -100,7 +97,7 @@ WHERE id(node) IN $node_ids
 RETURN
   id(node) AS neo4j_id,
   head(labels(node)) AS node_label,
-  properties(node) AS data
+  properties(node) AS properties
 ORDER BY neo4j_id
 '''
 
@@ -123,14 +120,14 @@ def get_neo4j_node_info(node_ids):
 
 
 cypher_rel_query = '''\
-MATCH ()-[rel]-()
+MATCH ()-[rel]->()
 WHERE id(rel) in $rel_ids
 RETURN
   id(rel) AS neo4j_id,
   type(rel) AS rel_type,
   id(startNode(rel)) AS source_neo4j_id,
   id(endNode(rel)) AS target_neo4j_id,
-  properties(rel) AS data
+  properties(rel) AS properties
 ORDER BY neo4j_id
 '''
 
