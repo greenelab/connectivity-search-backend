@@ -53,10 +53,9 @@ class NodeViewSet(ModelViewSet):
 
 class RandomNodePairView(APIView):
     """
-    Return a random source and target node for which at least one metapath with path
-    count information exists in the database. The implementation chooses a random row
-    from the PathCount table, such that source-target pairs with many metapaths are
-    more likely to be selected than source-target pairs with few metapaths.
+    Return a random source and target node for which at least one metapath with path count information exists in the database.
+    The implementation chooses a random row from the PathCount table,
+    such that source-target pairs with many metapaths are more likely to be selected than source-target pairs with few metapaths.
     """
     http_method_names = ['get']
 
@@ -80,11 +79,10 @@ class RandomNodePairView(APIView):
 
 class QueryMetapathsView(APIView):
     """
-    Return metapaths between a given source and target node whose path count
-    information is stored in the database. The database only stores a single
-    orientation of a metapath. For example, if GpPpGaD is stored between the
-    given source and target node, DaGpPpG would not also be stored. Therefore,
-    both orientations of a metapath are searched against the PathCount table.
+    Return metapaths between a given source and target node whose path count information is stored in the database.
+    The database only stores a single orientation of a metapath.
+    For example, if GpPpGaD is stored between the given source and target node, DaGpPpG would not also be stored.
+    Therefore, both orientations of a metapath are searched against the PathCount table.
     """
     http_method_names = ['get']
 
