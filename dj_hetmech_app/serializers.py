@@ -12,6 +12,11 @@ class NodeSerializer(serializers.ModelSerializer):
         model = Node
         fields = '__all__'
 
+    # search_against_n_metapaths = serializers.SerializerMethodField()
+
+    # def get_search_against_n_metapaths(self, record):
+    #     return None
+
 
 class DgpSerializer(serializers.ModelSerializer):
     class Meta:

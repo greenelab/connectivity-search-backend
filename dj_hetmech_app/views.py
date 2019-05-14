@@ -4,7 +4,7 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
 from rest_framework.views import APIView
-from rest_framework.viewsets import ModelViewSet
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import Node, PathCount
 from .serializers import NodeSerializer, PathCountDgpSerializer
@@ -25,7 +25,7 @@ def api_root(request):
     })
 
 
-class NodeViewSet(ModelViewSet):
+class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
     """
@@ -35,6 +35,23 @@ class NodeViewSet(ModelViewSet):
     # See the following page for "search" implementation and other filter options:
     # https://www.django-rest-framework.org/api-guide/filtering/
     search_fields = ('identifier', 'metanode__identifier', 'name')
+
+    def get_serializer_context(self):
+        # https://stackoverflow.com/a/52859696/4651668
+        context = super().get_serializer_context()
+        search_against = context['request'].query_params.get('search_against')
+        if search_against is None:
+            return context
+        try:
+            search_against = int(search_against)
+        except ValueError:
+            return Response(
+                {'error': 'target node not found in database'},
+                status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            )
+
+        context['search_against'] =  [] # calculate something here, you have access to self.request
+        return context
 
     def get_queryset(self):
         """Optionally restricts the returned nodes to a given list of
