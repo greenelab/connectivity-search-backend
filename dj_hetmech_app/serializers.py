@@ -12,10 +12,16 @@ class NodeSerializer(serializers.ModelSerializer):
         model = Node
         fields = '__all__'
 
-    # search_against_n_metapaths = serializers.SerializerMethodField()
+    metapath_count = serializers.SerializerMethodField()
 
-    # def get_search_against_n_metapaths(self, record):
-    #     return None
+    def get_metapath_count(self, record):
+        """
+        Get the number of metapaths in the PathCounts database table from
+        this node to the node specified by the count_metapaths_to request parameter.
+        """
+        if "metapath_counts" not in self.context:
+            return None
+        return self.context['metapath_counts'][record.id]
 
 
 class DgpSerializer(serializers.ModelSerializer):

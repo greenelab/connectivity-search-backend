@@ -28,6 +28,7 @@ def api_root(request):
 class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
+    Use `count_metapaths_to=node_id` to return non-null values for metapath_counts.
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
@@ -37,20 +38,24 @@ class NodeViewSet(ReadOnlyModelViewSet):
     search_fields = ('identifier', 'metanode__identifier', 'name')
 
     def get_serializer_context(self):
-        # https://stackoverflow.com/a/52859696/4651668
+        """
+        Add metapath_counts to context if "count_metapaths_to" was specified.
+        https://stackoverflow.com/a/52859696/4651668
+        """
         context = super().get_serializer_context()
-        search_against = context['request'].query_params.get('search_against')
+        search_against = context['request'].query_params.get('count_metapaths_to')
         if search_against is None:
             return context
         try:
             search_against = int(search_against)
         except ValueError:
-            return Response(
-                {'error': 'target node not found in database'},
-                status=status.HTTP_422_UNPROCESSABLE_ENTITY
-            )
-
-        context['search_against'] =  [] # calculate something here, you have access to self.request
+            # return Response(
+            #     {'error': 'target node not found in database'},
+            #     status=status.HTTP_422_UNPROCESSABLE_ENTITY
+            # )
+            return context
+        from dj_hetmech_app.utils.paths import get_metapath_counts_for_node
+        context['metapath_counts'] = get_metapath_counts_for_node(search_against)
         return context
 
     def get_queryset(self):
