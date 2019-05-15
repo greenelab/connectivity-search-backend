@@ -1,3 +1,4 @@
+import collections
 import logging
 
 import hetio.neo4j
@@ -149,3 +150,32 @@ def get_neo4j_rel_info(rel_ids):
         record['directed'] = metaedge.direction != 'both'
     id_to_info = {x['neo4j_id']: x for x in results}
     return id_to_info
+
+
+def get_metapath_counts_for_node(node):
+    """
+    Return a dictionary (collections.Counter) of the number of metapaths from
+    the input node to each other node in the PathCounts table.
+    """
+    from django.db.models import Count, F
+    from dj_hetmech_app.models import PathCount
+    query_set = (
+        PathCount.objects
+        .annotate(search_against=F('source'), node=F('target'))
+        .filter(search_against=node)
+        .values('node')
+        .annotate(n_metapaths=Count('node'))
+        .order_by('-n_metapaths')
+    ).union((
+        PathCount.objects
+        .annotate(search_against=F('target'), node=F('source'))
+        .filter(search_against=node)
+        .values('node')
+        .annotate(n_metapaths=Count('node'))
+        .order_by('-n_metapaths')
+    ), all=True)
+
+    counter = collections.Counter()
+    for result in query_set:
+        counter[result['node']] += result['n_metapaths']
+    return counter
