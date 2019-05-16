@@ -8,6 +8,13 @@ from .models import (
 
 
 class NodeSerializer(serializers.ModelSerializer):
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        request = self.context.get("request")
+        if not request or 'count_metapaths_to' not in request.query_params:
+            del self.fields['metapath_count']
+
     class Meta:
         model = Node
         fields = '__all__'
