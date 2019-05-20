@@ -29,7 +29,7 @@ def api_root(request):
 class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
-    Use `count_metapaths_to=node_id` to return non-null values for metapath_counts.
+    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts.
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
@@ -40,11 +40,11 @@ class NodeViewSet(ReadOnlyModelViewSet):
 
     def get_serializer_context(self):
         """
-        Add metapath_counts to context if "count_metapaths_to" was specified.
+        Add metapath_counts to context if "count-metapaths-to" was specified.
         https://stackoverflow.com/a/52859696/4651668
         """
         context = super().get_serializer_context()
-        search_against = context['request'].query_params.get('count_metapaths_to')
+        search_against = context['request'].query_params.get('count-metapaths-to')
         if search_against is None:
             return context
         try:
