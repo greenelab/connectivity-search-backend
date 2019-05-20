@@ -20,6 +20,7 @@ def api_root(request):
     return Response({
         'nodes': reverse('node-list', request=request),
         'random-node-pair': reverse('random-node-pair', request=request),
+        'count-metapaths-to': reverse('count-metapaths-to', request=request),
         'query-metapaths': reverse('query-metapaths', request=request),
         'query-paths': reverse('query-paths', request=request),
     })
@@ -49,10 +50,6 @@ class NodeViewSet(ReadOnlyModelViewSet):
         try:
             search_against = int(search_against)
         except ValueError:
-            # return Response(
-            #     {'error': 'target node not found in database'},
-            #     status=status.HTTP_422_UNPROCESSABLE_ENTITY
-            # )
             return context
         from dj_hetmech_app.utils.paths import get_metapath_counts_for_node
         context['metapath_counts'] = get_metapath_counts_for_node(search_against)
@@ -274,4 +271,45 @@ class QueryPathsView(APIView):
 
         from .utils.paths import get_paths
         output = get_paths(metapath, source_node.id, target_node.id, limit=max_paths)
+        return Response(output)
+
+
+class CountMetapathsToView(APIView):
+    """
+    Given a node, find the other nodes with the highest number of metapaths in the database.
+    """
+    http_method_names = ['get']
+
+    def get(self, request, query_node=None):
+        if query_node is None:
+            return Response(
+                {'error': 'must specify a query node like `count-metapaths-to/50/`'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Validate "max-nodes" (default to 100 if not found in URL)
+        max_nodes = request.query_params.get('max-nodes', '50')
+        try:
+            max_nodes = int(max_nodes)
+        except Exception:
+            return Response(
+                {'error': 'max-nodes is not a valid number'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if max_nodes < 0:
+            max_nodes = None
+
+        from .utils.paths import get_metapath_counts_for_node
+        node_counter = get_metapath_counts_for_node(query_node)
+        output = {
+            'query-node': query_node,
+            'count': len(node_counter),
+            'max-nodes': max_nodes,
+            'results': [],
+        }
+        for other_node, count in node_counter.most_common(n=max_nodes):
+            other_node = Node.objects.get(pk=other_node)
+            other_node_obj = NodeSerializer(other_node).data
+            other_node_obj['metapath_count'] = count
+            output['results'].append(other_node_obj)
         return Response(output)
