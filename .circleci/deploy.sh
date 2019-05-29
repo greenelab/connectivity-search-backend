@@ -6,7 +6,7 @@ git checkout master
 ENV_FILE="environment.yml"
 git remote update
 ENV_DIFF=`git diff origin $ENV_FILE`
-git pull
+git pull --ff-only
 
 # Update conda env if needed
 if [ -n "$ENV_DIFF" ]; then
