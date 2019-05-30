@@ -1,12 +1,106 @@
 import collections
 import logging
 
+from django.db.models import Q
 import hetio.neo4j
 
 from dj_hetmech_app.utils import (
     get_hetionet_metagraph,
     get_neo4j_driver,
 )
+
+
+cypher_degree_query = '''\
+MATCH (node)-[rel]-()
+WHERE id(node) = $node_id
+  AND type(rel) = $rel_type
+RETURN
+  id(node) AS node_id,
+  type(rel) AS rel_type,
+  count(rel) AS degree
+'''
+
+
+def get_node_degree(node_id, rel_type):
+    """Get a node degree for a given neo4j node ID and relationship type."""
+    from hetio.hetnet import MetaEdge
+    if isinstance(rel_type, MetaEdge):
+        rel_type = rel_type.neo4j_rel_type
+    driver = get_neo4j_driver()
+    with driver.session() as session:
+        results = session.run(cypher_degree_query, node_id=node_id, rel_type=rel_type)
+        result = results.single()
+    return result['degree'] if result else 0
+
+
+def get_pathcount_record(metapath, source_id, target_id, raw_dwpc):
+    """
+    Return the record from the PathCount table for a given metapath, source node,
+    and target node. If the record does not exist in the PathCount table, check
+    whether the DegreeGroupedPermutation table contains the corresponding null DWPC
+    information and use raw_dwpc to create a PathCount record on the fly. If no
+    null DWPC information exists, return None.
+    """
+    from dj_hetmech_app.models import DegreeGroupedPermutation, Metapath, Node, PathCount
+
+    # Return the PathCount record if it is stored in the database 
+    pathcounts_qs = PathCount.objects.filter(
+        Q(metapath=metapath.abbrev, source=source_id, target=target_id) |
+        Q(metapath=metapath.inverse.abbrev, source=target_id, target=source_id)
+    )
+    pathcount_record = pathcounts_qs.first()
+    pathcounts_qs_count = pathcounts_qs.count()
+    if pathcounts_qs_count > 1:
+        # see https://github.com/greenelab/hetmech-backend/issues/43
+        import pandas
+        qs_df = pandas.DataFrame.from_records(pathcounts_qs.all().values())
+        logging.warning(
+            f'get_paths returned {pathcounts_qs_count} results, '
+            'but database should not have more than one row (including inverse orientation) for '
+            f'{metapath.abbrev} from {source_id} to {target_id}.\n'
+            + qs_df.to_string(index=False)
+        )
+    if pathcount_record:
+        return pathcount_record
+
+    # Compute the PathCount record on-the-fly 
+    metapath_qs = Metapath.objects.filter(
+        Q(abbreviation=metapath.abbrev) |
+        Q(abbreviation=metapath.inverse.abbrev)
+    )
+    metapath_record = metapath_qs.first()
+    if not metapath_record:
+        return None
+    # Reorient metapath according to database orientation
+    if metapath_record.abbreviation != metapath.abbrev:
+        metapath = metapath.inverse
+        source_id, target_id = target_id, source_id
+        assert metapath_record.abbreviation == metapath.abbrev
+    source_degree = get_node_degree(source_id, metapath[0])
+    target_degree = get_node_degree(target_id, metapath[-1])
+    import numpy
+    dwpc = numpy.arcsinh(raw_dwpc / metapath_record.dwpc_raw_mean)
+    dgp_record = DegreeGroupedPermutation.objects.get(
+        metapath=metapath_record, source_degree=source_degree, target_degree=target_degree)
+    hetmatpy_info = {
+        'dwpc': dwpc,
+        'n': dgp_record.n_dwpcs,
+        'nnz': dgp_record.n_nonzero_dwpcs,
+        'mean_nz': dgp_record.nonzero_mean,
+        'sd_nz': dgp_record.nonzero_sd,
+    }
+    from hetmatpy.pipeline import calculate_p_value
+    p_value = calculate_p_value(hetmatpy_info)
+    pathcount_record = PathCount(
+        metapath=metapath_record,
+        source=Node.objects.get(pk=source_id),
+        target=Node.objects.get(pk=target_id),
+        dgp=dgp_record,
+        path_count=None,
+        dwpc=dwpc,
+        p_value=p_value,
+    )
+    return pathcount_record
 
 
 def get_paths(metapath, source_id, target_id, limit=None):
@@ -16,34 +110,12 @@ def get_paths(metapath, source_id, target_id, limit=None):
     metagraph = get_hetionet_metagraph()
     metapath = metagraph.get_metapath(metapath)
 
-    from dj_hetmech_app.models import Node, PathCount
-    from django.db.models import Q
+    from dj_hetmech_app.models import Node
     source_record = Node.objects.get(pk=source_id)
     target_record = Node.objects.get(pk=target_id)
     source_identifier = source_record.get_cast_identifier()
     target_identifier = target_record.get_cast_identifier()
 
-    metapath_qs = PathCount.objects.filter(
-        Q(metapath=metapath.abbrev, source=source_id, target=target_id) |
-        Q(metapath=metapath.inverse.abbrev, source=target_id, target=source_id)
-    )
-    metapath_record = metapath_qs.first()
-    metapath_qs_count = metapath_qs.count()
-    if metapath_qs_count > 1:
-        # see https://github.com/greenelab/hetmech-backend/issues/43
-        import pandas
-        qs_df = pandas.DataFrame.from_records(metapath_qs.all().values())
-        logging.warning(
-            f'get_paths returned {metapath_qs_count} results, '
-            'but database should not have more than one row (including inverse orientation) for '
-            f'{metapath.abbrev} from {source_id} to {target_id}.\n'
-            + qs_df.to_string(index=False)
-        )
-    if metapath_record and metapath_record.p_value:
-        import math
-        metapath_score = -math.log10(metapath_record.get_adjusted_p_value())
-    else:
-        metapath_score = None
 
     query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
@@ -57,6 +129,18 @@ def get_paths(metapath, source_id, target_id, limit=None):
     with driver.session() as session:
         results = session.run(query, neo4j_params)
         results = [dict(record) for record in results]
+
+    metapath_score = None
+    raw_dwpc = (
+        100 * results[0]['PDP'] / results[0]['percent_of_DWPC']
+        if results else 0.0
+    )
+    pathcount_record = get_pathcount_record(metapath, source_id, target_id, raw_dwpc)
+    if pathcount_record:
+        import math
+        adj_p_value = pathcount_record.get_adjusted_p_value()
+        metapath_score = -math.log10(adj_p_value)
+
     neo4j_node_ids = set()
     neo4j_rel_ids = set()
     paths_obj = []
@@ -82,6 +166,8 @@ def get_paths(metapath, source_id, target_id, limit=None):
             'target_identifier': target_identifier,
             'metapath': metapath.abbrev,
             'metapath_id': [edge.get_id() for edge in metapath],
+            'metapath_unadjusted_p_value': pathcount_record.p_value if pathcount_record else None,
+            'metapath_adjusted_p_value': adj_p_value if pathcount_record else None,
             'metapath_score': metapath_score,
             'limit': limit,
         },
