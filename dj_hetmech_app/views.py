@@ -34,9 +34,6 @@ class NodeViewSet(ReadOnlyModelViewSet):
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
-    # See the following page for "search" implementation and other filter options:
-    # https://www.django-rest-framework.org/api-guide/filtering/
-    search_fields = ('identifier', 'metanode__identifier', 'name')
 
     def get_serializer_context(self):
         """
@@ -62,10 +59,35 @@ class NodeViewSet(ReadOnlyModelViewSet):
         """
 
         queryset = Node.objects.all()
+        # 'metanodes' parameter
         metanodes_str = self.request.query_params.get('metanodes', None)
         if metanodes_str is not None:
             metanodes = metanodes_str.split(',')
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
+
+        # 'search' parameter
+        search_str = self.request.query_params.get('search', None)
+        if search_str is not None:
+            from django.contrib.postgres.search import TrigramSimilarity
+            if 'fuzzy' in self.request.query_params:
+                from django.db.models import Q, Case, When, Value, IntegerField
+                queryset = queryset.filter(
+                    Q(name__icontains=search_str) |
+                    Q(name__trigram_similar=search_str)
+                ).annotate(
+                    exact_match=Case(
+                        When(name__icontains=search_str, then=Value(1)),
+                        default=Value(0),
+                        output_field=IntegerField(),
+                    ),
+                    similarity=TrigramSimilarity('name', search_str)
+                ).order_by('-exact_match', '-similarity', 'name')
+            else:
+                queryset = queryset.filter(
+                    name__icontains=search_str
+                ).annotate(
+                    similarity=TrigramSimilarity('name', search_str)
+                ).order_by('-similarity', 'name')
 
         return queryset
 
