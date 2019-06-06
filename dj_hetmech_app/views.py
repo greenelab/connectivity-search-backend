@@ -31,7 +31,7 @@ class NodeViewSet(ReadOnlyModelViewSet):
     Return nodes in the network that match the search term (sometimes partially).
     Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
     Use `search=<str>` to search `identifier` for prefix match, and `name` for substring match;
-    Use `search=<str>&fuzzy=<fuzzy_value>` to search `identifier` for prefix match, and `name` for both substring and trigram match based on <fuzzy_value> (default is 0.3).
+    Use `search=<str>&fuzzy=<fuzzy_value>` to search `identifier` for prefix match, and `name` for both substring and trigram match based on `<fuzzy_value>` (default is 0.3).
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
