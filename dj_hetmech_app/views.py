@@ -29,7 +29,9 @@ def api_root(request):
 class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
-    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts.
+    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
+    Use `search=<str>` to search `identifier` for prefix match, and `name` for substring match;
+    Use `search=<str>&fuzzy=<fuzzy_value>` to search `identifier` for prefix match, and `name` for both substring and trigram match based on <fuzzy_value> (default is 0.3).
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
@@ -53,41 +55,67 @@ class NodeViewSet(ReadOnlyModelViewSet):
         return context
 
     def get_queryset(self):
-        """Optionally restricts the returned nodes to a given list of
-        metanode abbreviations by filtering against a comma-separated
-        `metanodes` query parameter in the URL.
+        """Optionally restricts the returned nodes based on `metanodes` and
+        `search` parameters in the URL.
         """
 
         queryset = Node.objects.all()
-        # 'metanodes' parameter
+
+        # 'metanodes' parameter for exact match on metanode abbreviation
         metanodes_str = self.request.query_params.get('metanodes', None)
         if metanodes_str is not None:
             metanodes = metanodes_str.split(',')
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
 
-        # 'search' parameter
+        # 'search' parameter to search 'identifier' and 'name' fields
         search_str = self.request.query_params.get('search', None)
         if search_str is not None:
             from django.contrib.postgres.search import TrigramSimilarity
-            if 'fuzzy' in self.request.query_params:
-                from django.db.models import Q, Case, When, Value, IntegerField
-                queryset = queryset.filter(
-                    Q(name__icontains=search_str) |
-                    Q(name__trigram_similar=search_str)
-                ).annotate(
-                    exact_match=Case(
-                        When(name__icontains=search_str, then=Value(1)),
-                        default=Value(0),
-                        output_field=IntegerField(),
-                    ),
+            from django.db.models import Q, Case, When, Value, IntegerField
+
+            non_fuzzy_qs = queryset.filter(
+                Q(identifier__istartswith=search_str) |
+                Q(name__icontains=search_str)
+            )
+
+            if 'fuzzy' in self.request.query_params:  # trigram search on 'name' field
+                fuzzy_value = self.request.query_params.get('fuzzy')
+                if fuzzy_value == '':                 # fuzzy_value defaults to 0.3
+                    fuzzy_value = 0.3
+
+                try:
+                    fuzzy_value = float(fuzzy_value)
+                    if fuzzy_value <= 0 or fuzzy_value > 1.0:
+                        raise ValueError
+                except ValueError:
+                    from rest_framework.exceptions import ParseError, NotFound
+                    raise ParseError(
+                        {'error': 'Value of fuzzy parameter must be between 0 and 1.0'}
+                    )
+
+                fuzzy_qs = queryset.annotate(
                     similarity=TrigramSimilarity('name', search_str)
-                ).order_by('-exact_match', '-similarity', 'name')
+                ).filter(similarity__gt=fuzzy_value)
+
+                queryset = non_fuzzy_qs | fuzzy_qs
             else:
-                queryset = queryset.filter(
-                    name__icontains=search_str
-                ).annotate(
-                    similarity=TrigramSimilarity('name', search_str)
-                ).order_by('-similarity', 'name')
+                queryset = non_fuzzy_qs
+
+            queryset = queryset.annotate(
+                identifier_prefix_match=Case(
+                    When(identifier__istartswith=search_str, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+                name_substr_match=Case(
+                    When(name__icontains=search_str, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+                similarity=TrigramSimilarity('name', search_str)
+            ).order_by(
+                '-identifier_prefix_match', '-name_substr_match', '-similarity', 'name'
+            )
 
         return queryset
 
