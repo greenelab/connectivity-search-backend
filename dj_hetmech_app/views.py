@@ -30,8 +30,8 @@ class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
     Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
-    Use `search=<str>` to search `identifier` for prefix match, and `name` for substring match;
-    Use `search=<str>&fuzzy=<fuzzy_value>` to search `identifier` for prefix match, and `name` for both substring and trigram match based on `<fuzzy_value>` (default is 0.3).
+    Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
+    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0]. (Set the value to 1.0 to exclude trigram search.)
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
@@ -73,35 +73,25 @@ class NodeViewSet(ReadOnlyModelViewSet):
             from django.contrib.postgres.search import TrigramSimilarity
             from django.db.models import Q, Case, When, Value, IntegerField
 
-            non_fuzzy_qs = queryset.filter(
-                Q(identifier__istartswith=search_str) |
-                Q(name__icontains=search_str)
-            )
-
-            if 'fuzzy' in self.request.query_params:  # trigram search on 'name' field
-                fuzzy_value = self.request.query_params.get('fuzzy')
-                if fuzzy_value == '':                 # fuzzy_value defaults to 0.3
-                    fuzzy_value = 0.3
-
-                try:
-                    fuzzy_value = float(fuzzy_value)
-                    if fuzzy_value <= 0 or fuzzy_value > 1.0:
-                        raise ValueError
-                except ValueError:
-                    from rest_framework.exceptions import ParseError, NotFound
-                    raise ParseError(
-                        {'error': 'Value of fuzzy parameter must be between 0 and 1.0'}
-                    )
-
-                fuzzy_qs = queryset.annotate(
-                    similarity=TrigramSimilarity('name', search_str)
-                ).filter(similarity__gt=fuzzy_value)
-
-                queryset = non_fuzzy_qs | fuzzy_qs
-            else:
-                queryset = non_fuzzy_qs
+            # 'similarity' defaults to 0.3
+            similarity = self.request.query_params.get('similarity', "0.3")
+            try:
+                similarity = float(similarity)
+                if similarity <= 0 or similarity > 1.0:
+                    raise ValueError
+            except ValueError:
+                from rest_framework.exceptions import ParseError
+                raise ParseError(
+                    {'error': 'Value of similarity must be in (0, 1.0]'}
+                )
 
             queryset = queryset.annotate(
+                similarity=TrigramSimilarity('name', search_str)
+            ).filter(
+                Q(identifier__istartswith=search_str) |  # prefix match of "identifier
+                Q(name__icontains=search_str) |          # substring match of "name"
+                Q(similarity__gt=similarity)             # trigram search of "name"
+            ).annotate(
                 identifier_prefix_match=Case(
                     When(identifier__istartswith=search_str, then=Value(1)),
                     default=Value(0),
@@ -111,8 +101,7 @@ class NodeViewSet(ReadOnlyModelViewSet):
                     When(name__icontains=search_str, then=Value(1)),
                     default=Value(0),
                     output_field=IntegerField(),
-                ),
-                similarity=TrigramSimilarity('name', search_str)
+                )
             ).order_by(
                 '-identifier_prefix_match', '-name_substr_match', '-similarity', 'name'
             )
