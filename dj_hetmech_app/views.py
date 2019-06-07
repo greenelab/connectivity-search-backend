@@ -29,14 +29,13 @@ def api_root(request):
 class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes in the network that match the search term (sometimes partially).
-    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts.
+    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
+    Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
+    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0]. (Set the value to 1.0 to exclude trigram search.)
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
-    # See the following page for "search" implementation and other filter options:
-    # https://www.django-rest-framework.org/api-guide/filtering/
-    search_fields = ('identifier', 'metanode__identifier', 'name')
 
     def get_serializer_context(self):
         """
@@ -56,16 +55,56 @@ class NodeViewSet(ReadOnlyModelViewSet):
         return context
 
     def get_queryset(self):
-        """Optionally restricts the returned nodes to a given list of
-        metanode abbreviations by filtering against a comma-separated
-        `metanodes` query parameter in the URL.
+        """Optionally restricts the returned nodes based on `metanodes` and
+        `search` parameters in the URL.
         """
 
         queryset = Node.objects.all()
+
+        # 'metanodes' parameter for exact match on metanode abbreviation
         metanodes_str = self.request.query_params.get('metanodes', None)
         if metanodes_str is not None:
             metanodes = metanodes_str.split(',')
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
+
+        # 'search' parameter to search 'identifier' and 'name' fields
+        search_str = self.request.query_params.get('search', None)
+        if search_str is not None:
+            from django.contrib.postgres.search import TrigramSimilarity
+            from django.db.models import Q, Case, When, Value, IntegerField
+
+            # 'similarity' defaults to 0.3
+            similarity = self.request.query_params.get('similarity', "0.3")
+            try:
+                similarity = float(similarity)
+                if similarity <= 0 or similarity > 1.0:
+                    raise ValueError
+            except ValueError:
+                from rest_framework.exceptions import ParseError
+                raise ParseError(
+                    {'error': 'Value of similarity must be in (0, 1.0]'}
+                )
+
+            queryset = queryset.annotate(
+                similarity=TrigramSimilarity('name', search_str)
+            ).filter(
+                Q(identifier__istartswith=search_str) |  # prefix match of "identifier
+                Q(name__icontains=search_str) |          # substring match of "name"
+                Q(similarity__gt=similarity)             # trigram search of "name"
+            ).annotate(
+                identifier_prefix_match=Case(
+                    When(identifier__istartswith=search_str, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                ),
+                name_substr_match=Case(
+                    When(name__icontains=search_str, then=Value(1)),
+                    default=Value(0),
+                    output_field=IntegerField(),
+                )
+            ).order_by(
+                '-identifier_prefix_match', '-name_substr_match', '-similarity', 'name'
+            )
 
         return queryset
 
