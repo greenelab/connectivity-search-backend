@@ -265,3 +265,23 @@ def get_metapath_counts_for_node(node):
     for result in query_set:
         counter[result['node']] += result['n_metapaths']
     return counter
+
+
+def get_metapath_queryset(source_metanode, target_metanode):
+    """
+    Find metapaths between a source and target metanode.
+    Get back Metapath table records, with an added reversed field.
+    """
+    from dj_hetmech_app.models import Metapath
+    from django.db.models import Value, BooleanField
+    metapath_qs = (
+        Metapath.objects.filter(source=source_metanode, target=target_metanode)
+        .annotate(reversed=Value(False, output_field=BooleanField()))
+    )
+    if source_metanode != target_metanode:
+        # Do not use |= instead of .union since it interferes with reversed=True
+        metapath_qs = metapath_qs.union(
+            Metapath.objects.filter(source=target_metanode, target=source_metanode)
+            .annotate(reversed=Value(True, output_field=BooleanField()))
+        )
+    return metapath_qs
