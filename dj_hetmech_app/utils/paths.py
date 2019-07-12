@@ -2,7 +2,7 @@ import collections
 import logging
 
 from django.db.models import Q
-import hetio.neo4j
+import hetnetpy.neo4j
 
 from dj_hetmech_app.utils import (
     get_hetionet_metagraph,
@@ -23,7 +23,7 @@ RETURN
 
 def get_node_degree(node_id, rel_type):
     """Get a node degree for a given neo4j node ID and relationship type."""
-    from hetio.hetnet import MetaEdge
+    from hetnetpy.hetnet import MetaEdge
     if isinstance(rel_type, MetaEdge):
         rel_type = rel_type.neo4j_rel_type
     driver = get_neo4j_driver()
@@ -117,7 +117,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
     target_identifier = target_record.get_cast_identifier()
 
 
-    query = hetio.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
+    query = hetnetpy.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
         query += f'\nLIMIT {limit}'
     driver = get_neo4j_driver()

@@ -13,7 +13,7 @@ import pathlib
 import zipfile
 from urllib.request import urlretrieve
 
-import hetio.readwrite
+import hetnetpy.readwrite
 import hetmatpy.hetmat
 import hetmatpy.pipeline
 import pandas
@@ -62,7 +62,7 @@ class Command(BaseCommand):
             commit='23f6117c24b9a3130d8050ee4354b0ccd6cd5b9a',
             path='hetnet/json/hetionet-v1.0.json.bz2',
         )
-        return hetio.readwrite.read_graph(path)
+        return hetnetpy.readwrite.read_graph(path)
 
     @functools.lru_cache()
     def _get_metanode(self, identifier):

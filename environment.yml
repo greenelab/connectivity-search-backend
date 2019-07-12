@@ -22,6 +22,6 @@ dependencies:
   - scipy=1.2.1
   - sqlparse=0.3.0
   - pip:
-    - git+https://github.com/hetio/hetio@84f166510bc10c3560430011ff3e6d0b731d878b
-    - git+https://github.com/hetio/hetmatpy@5ecb7cec827c54886e0ddd90c18fbb69ce9b8ce1
+    - git+https://github.com/hetio/hetnetpy@43294c38cfbc61ede93d6621188a8de2143decac
+    - git+https://github.com/hetio/hetmatpy@2589aa32abf73d70451c101d7bd9df425b357a7b
     - markdown==3.1
