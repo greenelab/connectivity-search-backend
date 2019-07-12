@@ -30,7 +30,7 @@ def get_hetionet_metagraph():
     https://github.com/hetio/hetionet/blob/b7c144da0dd428def9e3c262d0bc48c050cf631d/hetnet/json/hetionet-v1.0-metagraph.json
     """
     import json
-    from hetio.readwrite import metagraph_from_writable
+    from hetnetpy.readwrite import metagraph_from_writable
     hetionet_metagraph_json = '''
     {
     "metanode_kinds": [

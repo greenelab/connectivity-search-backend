@@ -1,6 +1,6 @@
 import json
 
-import hetio.readwrite
+import hetnetpy.readwrite
 from django.core.management.base import BaseCommand
 
 from dj_hetmech_app.utils.paths import (

@@ -154,10 +154,10 @@ class QueryMetapathsView(APIView):
         * Sort pathcounts by certain fields.
         """
         from dj_hetmech_app.utils import metapath_from_abbrev
-        from hetio.neo4j import construct_pdp_query
+        from hetnetpy.neo4j import construct_pdp_query
 
         for entry in pathcounts_data:
-            # Retrieve hetio.hetnet.MetaPath object for metapath
+            # Retrieve hetnetpy.hetnet.MetaPath object for metapath
             serialized_metapath = entry.pop('metapath')
             metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
 
