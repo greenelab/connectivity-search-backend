@@ -7,7 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from .models import Node, PathCount
-from .serializers import NodeSerializer, PathCountDgpSerializer
+from .serializers import NodeSerializer, MetapathSerializer, PathCountDgpSerializer
 
 
 @api_view(['GET'])
@@ -71,7 +71,7 @@ class NodeViewSet(ReadOnlyModelViewSet):
         search_str = self.request.query_params.get('search', None)
         if search_str is not None:
             from django.contrib.postgres.search import TrigramSimilarity
-            from django.db.models import Q, Case, When, Value, IntegerField
+            from django.db.models import Case, When, Value, IntegerField
 
             # 'similarity' defaults to 0.3
             similarity = self.request.query_params.get('similarity', "0.3")
@@ -144,61 +144,6 @@ class QueryMetapathsView(APIView):
     """
     http_method_names = ['get']
 
-    def polish_pathcounts(self, source_node, target_node, pathcounts_data):
-        """
-        This function polishes pathcounts_data. The polishment includes:
-        * Add extra metapath-related fields;
-        * Copy nested fields in 'dgp' to upper level;
-        * Make source/target consistent with query parameters in the URL;
-        * Remove redundant fields;
-        * Sort pathcounts by certain fields.
-        """
-        from dj_hetmech_app.utils import metapath_from_abbrev
-        from hetnetpy.neo4j import construct_pdp_query
-
-        for entry in pathcounts_data:
-            # Retrieve hetnetpy.hetnet.MetaPath object for metapath
-            serialized_metapath = entry.pop('metapath')
-            metapath = metapath_from_abbrev(serialized_metapath['abbreviation'])
-
-            # Copy all key/values in entry['dgp'] and remove 'dgp' field:
-            for key, value in entry.pop('dgp').items():
-                entry[f'dgp_{key}'] = value
-
-            for key, value in serialized_metapath.items():
-                entry[f'metapath_{key}'] = value
-
-            # If necessary, swap "source_degree" and "target_degree" values.
-            entry['metapath_reversed'] = int(source_node.id) != entry['source']
-            if entry['metapath_reversed']:
-                metapath = metapath.inverse
-                entry['dgp_source_degree'], entry['dgp_target_degree'] = (
-                    entry['dgp_target_degree'], entry['dgp_source_degree']
-                )
-
-            entry['metapath_abbreviation'] = metapath.abbrev
-            entry['metapath_name'] = metapath.get_unicode_str()
-            entry['metapath_metaedges'] = [metaedge.get_id() for metaedge in metapath]
-            entry['cypher_query'] = (
-                construct_pdp_query(metapath, property='identifier', path_style='string')
-                .replace('{ source }', f"{source_node.get_cast_identifier().__repr__()} // {source_node.name}")
-                .replace('{ target }', f"{target_node.get_cast_identifier().__repr__()} // {target_node.name}")
-                .replace('{ w }', '0.5')
-                .replace('RETURN', 'RETURN\n  path AS neo4j_path,')
-                + '\nLIMIT 10'
-            )
-
-            # Remove fields
-            for key in 'source', 'target':
-                del entry[key]
-
-        # Sort pathcounts_data by 'p_value' and 'metapath_abbreviation' fields:
-        pathcounts_data.sort(
-            key=lambda x: (x['p_value'], x['metapath_abbreviation'])
-        )
-
-        return pathcounts_data
-
     def get(self, request):
         # Validate "source" parameter
         source_id = request.query_params.get('source', None)
@@ -230,20 +175,30 @@ class QueryMetapathsView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        path_counts = PathCount.objects.filter(
-            Q(source=source_id, target=target_id) |
-            Q(source=target_id, target=source_id)
-        )
+        from .utils.paths import get_pathcount_queryset, get_metapath_queryset
+        pathcounts = get_pathcount_queryset(source_id, target_id)
+        pathcounts = PathCountDgpSerializer(pathcounts, many=True).data
+        pathcounts.sort(key=lambda x: (x['adjusted_p_value'], x['p_value'], x['metapath_abbreviation']))
 
-        data = dict()
-        data['source'] = NodeSerializer(source_node).data
-        data['target'] = NodeSerializer(target_node).data
-        data['path_counts'] = self.polish_pathcounts(
-            source_node,
-            target_node,
-            PathCountDgpSerializer(path_counts, many=True).data
-        )
+        if 'complete' in request.query_params:
+            metapaths_present = {x['metapath_id'] for x in pathcounts}
+            metapath_qs = get_metapath_queryset(source_node.metanode, target_node.metanode)
+            # The following line silently does not work. https://stackoverflow.com/a/49261966/4651668
+            # metapath_qs = metapath_qs.exclude(abbreviation__in=metapaths_present)
+            for metapath_instance in metapath_qs:
+                if metapath_instance.abbreviation not in metapaths_present:
+                    pathcounts.append(MetapathSerializer(metapath_instance).data)
 
+        remove_keys = {'source', 'target', 'metapath_source', 'metapath_target'}
+        for dictionary in pathcounts:
+            for key in remove_keys & set(dictionary):
+                del dictionary[key]
+
+        data = {
+            'source': NodeSerializer(source_node).data,
+            'target': NodeSerializer(target_node).data,
+            'path_counts': pathcounts,
+        }
         return Response(data)
 
 

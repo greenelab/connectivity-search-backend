@@ -64,11 +64,7 @@ def get_pathcount_record(metapath, source_id, target_id, raw_dwpc):
         return pathcount_record
 
     # Compute the PathCount record on-the-fly 
-    metapath_qs = Metapath.objects.filter(
-        Q(abbreviation=metapath.abbrev) |
-        Q(abbreviation=metapath.inverse.abbrev)
-    )
-    metapath_record = metapath_qs.first()
+    metapath_record = get_metapath_instance(metapath)
     if not metapath_record:
         return None
     # Reorient metapath according to database orientation
@@ -115,7 +111,6 @@ def get_paths(metapath, source_id, target_id, limit=None):
     target_record = Node.objects.get(pk=target_id)
     source_identifier = source_record.get_cast_identifier()
     target_identifier = target_record.get_cast_identifier()
-
 
     query = hetnetpy.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
     if limit is not None:
@@ -271,6 +266,9 @@ def get_metapath_queryset(source_metanode, target_metanode):
     """
     Find metapaths between a source and target metanode.
     Get back Metapath table records, with an added reversed field.
+
+    WARNING: django cannot filter union querysets and does not create
+    a warning (https://stackoverflow.com/a/49261966/4651668).
     """
     from dj_hetmech_app.models import Metapath
     from django.db.models import Value, BooleanField
@@ -285,3 +283,45 @@ def get_metapath_queryset(source_metanode, target_metanode):
             .annotate(reversed=Value(True, output_field=BooleanField()))
         )
     return metapath_qs
+
+
+def get_pathcount_queryset(source_node, target_node):
+    """
+    Find pathcount records between a source and target node.
+    Get back Pathcount table records, with an added reversed field.
+    """
+    from dj_hetmech_app.models import PathCount
+    from django.db.models import Value, BooleanField
+    pathcount_qs = (
+        PathCount.objects.filter(source=source_node, target=target_node)
+        .annotate(reversed=Value(False, output_field=BooleanField()))
+    )
+    if source_node != target_node:
+        pathcount_qs = pathcount_qs.union(
+            PathCount.objects.filter(source=target_node, target=source_node)
+            .annotate(reversed=Value(True, output_field=BooleanField()))
+        )
+    return pathcount_qs
+
+
+def get_metapath_instance(metapath):
+    from dj_hetmech_app.models import Metapath
+    from django.db.models import Value, BooleanField
+    if isinstance(metapath, Metapath):
+        return metapath
+    if isinstance(metapath, str):
+        from . import metapath_from_abbrev
+        metapath = metapath_from_abbrev(metapath)
+    abbrev_original = metapath.abbrev
+    abbrev_reversed = metapath.inverse.abbrev
+    metapath_qs = (
+        Metapath.objects.filter(abbreviation=abbrev_original)
+        .annotate(reversed=Value(False, output_field=BooleanField()))
+    )
+    if abbrev_original != abbrev_reversed:
+        # Do not use |= instead of .union since it interferes with reversed=True
+        metapath_qs = metapath_qs.union(
+            Metapath.objects.filter(abbreviation=abbrev_reversed)
+            .annotate(reversed=Value(True, output_field=BooleanField()))
+        )
+    return metapath_qs.first()
