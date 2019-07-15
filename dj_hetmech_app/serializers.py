@@ -64,13 +64,14 @@ class MetapathSerializer(serializers.ModelSerializer):
         data['id'] = instance.pk
         data['reversed'] = vars(instance).get('reversed')
         from dj_hetmech_app.utils import metapath_from_abbrev
-        metapath = metapath_from_abbrev(data['abbreviation']).inverse
-        instance.metapath_object = metapath
+        oriented_metapath = metapath_from_abbrev(data['abbreviation'])
         if data['reversed']:
-            data['abbreviation'] = metapath.abbrev
-            data['name'] = metapath.get_unicode_str()
+            oriented_metapath = oriented_metapath.inverse
+            data['abbreviation'] = oriented_metapath.abbrev
+            data['name'] = oriented_metapath.get_unicode_str()
             data['source'], data['target'] = data['target'], data['source']
-        data['metaedges'] = [metaedge.get_id() for metaedge in metapath]
+        instance.oriented_metapath = oriented_metapath
+        data['metaedges'] = [metaedge.get_id() for metaedge in oriented_metapath]
         data = format_dictionary_keys(data, "metapath_{}".format)
         return data
 
@@ -100,9 +101,11 @@ class PathCountDgpSerializer(serializers.ModelSerializer):
         return data
 
     def get_cypher(self, instance):
-        metapath = instance.metapath.metapath_object
+        metapath = instance.metapath.oriented_metapath
         source = instance.source
         target = instance.target
+        if vars(instance).get('reversed'):
+            source, target = target, source
         from hetnetpy.neo4j import construct_pdp_query
         cypher_query = (
             construct_pdp_query(metapath, property='identifier', path_style='string')
