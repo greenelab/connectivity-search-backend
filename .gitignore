@@ -12,6 +12,7 @@ db.sqlite3
 
 # Python
 __pycache__
+.ipynb_checkpoints/
 
 # System files
 *~
