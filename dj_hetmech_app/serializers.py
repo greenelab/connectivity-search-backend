@@ -39,6 +39,11 @@ class DgpSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
+        # Replace nan with None. https://github.com/greenelab/hetmech-backend/issues/63
+        from pandas import isna
+        for key in 'nonzero_mean', 'nonzero_sd':
+            if isna(data[key]):
+                data[key] = None
         data['reversed'] = vars(instance).get('reversed')
         if data['reversed']:
             data['source_degree'], data['target_degree'] = (

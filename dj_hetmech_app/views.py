@@ -182,12 +182,12 @@ class QueryMetapathsView(APIView):
 
         if 'complete' in request.query_params:
             metapaths_present = {x['metapath_id'] for x in pathcounts}
-            metapath_qs = get_metapath_queryset(source_node.metanode, target_node.metanode)
-            # The following line silently does not work. https://stackoverflow.com/a/49261966/4651668
-            # metapath_qs = metapath_qs.exclude(abbreviation__in=metapaths_present)
-            for metapath_instance in metapath_qs:
-                if metapath_instance.abbreviation not in metapaths_present:
-                    pathcounts.append(MetapathSerializer(metapath_instance).data)
+            metapath_qs = get_metapath_queryset(
+                source_node.metanode,
+                target_node.metanode,
+                extra_filters=~Q(abbreviation__in=metapaths_present),
+            )
+            pathcounts += MetapathSerializer(metapath_qs, many=True).data
 
         remove_keys = {'source', 'target', 'metapath_source', 'metapath_target'}
         for dictionary in pathcounts:
