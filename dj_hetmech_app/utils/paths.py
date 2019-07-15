@@ -154,8 +154,9 @@ def get_paths(metapath, source_id, target_id, limit=None):
 
     node_id_to_info = get_neo4j_node_info(neo4j_node_ids)
     rel_id_to_info = get_neo4j_rel_info(neo4j_rel_ids)
-    # from dj_hetmech_app.serializers import PathCountDgpSerializer
-    # path_count_info = PathCountDgpSerializer(pathcount_record).data if pathcount_record else {}
+    # TODO return better path_count_info when pathcount_record=None
+    from dj_hetmech_app.serializers import PathCountDgpSerializer
+    path_count_info = PathCountDgpSerializer(pathcount_record).data if pathcount_record else {}
     json_obj = {
         'query': {
             'source_id': source_id,
@@ -172,7 +173,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
             'limit': limit,
         },
         # TODO: path_count_info will replace most fields in query in the future.
-        # 'path_count_info': path_count_info,
+        'path_count_info': path_count_info,
         'paths': paths_obj,
         'nodes': node_id_to_info,
         'relationships': rel_id_to_info,
