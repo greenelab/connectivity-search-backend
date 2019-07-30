@@ -33,7 +33,7 @@ def get_node_degree(node_id, rel_type):
     return result['degree'] if result else 0
 
 
-def get_pathcount_record(metapath, source_id, target_id, raw_dwpc):
+def get_pathcount_record(metapath, source_id, target_id, path_count, raw_dwpc):
     """
     Return the record from the PathCount table for a given metapath, source node,
     and target node. If the record does not exist in the PathCount table, check
@@ -94,7 +94,7 @@ def get_pathcount_record(metapath, source_id, target_id, raw_dwpc):
         source=Node.objects.get(pk=source_id),
         target=Node.objects.get(pk=target_id),
         dgp=dgp_record,
-        path_count=None,
+        path_count=path_count,
         dwpc=dwpc,
         p_value=p_value,
     )
@@ -115,7 +115,8 @@ def get_paths(metapath, source_id, target_id, limit=None):
     source_identifier = source_record.get_cast_identifier()
     target_identifier = target_record.get_cast_identifier()
 
-    query = hetnetpy.neo4j.construct_pdp_query(metapath, property='identifier', path_style='id_lists')
+    query = hetnetpy.neo4j.construct_pdp_query(
+        metapath, property='identifier', path_style='id_lists', aggregate_columns=True)
     if limit is not None:
         query += f'\nLIMIT {limit}'
     driver = get_neo4j_driver()
@@ -129,11 +130,11 @@ def get_paths(metapath, source_id, target_id, limit=None):
         results = [dict(record) for record in results]
 
     metapath_score = None
-    raw_dwpc = (
-        100 * results[0]['PDP'] / results[0]['percent_of_DWPC']
-        if results else 0.0
+    pathcount_record = get_pathcount_record(
+        metapath, source_id, target_id,
+        path_count=results[0].pop('PC') if results else 0,
+        raw_dwpc=results[0].pop('DWPC') if results else 0.0,
     )
-    pathcount_record = get_pathcount_record(metapath, source_id, target_id, raw_dwpc)
     if pathcount_record:
         import math
         adj_p_value = pathcount_record.get_adjusted_p_value()
