@@ -302,6 +302,7 @@ class CountMetapathsToView(APIView):
         node_counter = get_metapath_counts_for_node(query_node, metanodes)
         output = {
             'query-node': query_node,
+            'metanodes': metanodes,
             'count': len(node_counter),
             'max-nodes': max_nodes,
             'results': [],
