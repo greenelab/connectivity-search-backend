@@ -271,6 +271,8 @@ class QueryPathsView(APIView):
 class CountMetapathsToView(APIView):
     """
     Given a node, find the other nodes with the highest number of metapaths in the database.
+    Specify, `metanodes=<str>` to filter the other nodes to a subset of metanodes.
+    For example, `metanodes=G,MF` restricts other nodes to Genes and Molecular Functions.
     """
     http_method_names = ['get']
 
