@@ -293,8 +293,13 @@ class CountMetapathsToView(APIView):
         if max_nodes < 0:
             max_nodes = None
 
+        # 'metanodes' parameter for exact match on metanode abbreviation
+        metanodes = self.request.query_params.get('metanodes', None)
+        if metanodes is not None:
+            metanodes = metanodes.split(',')
+
         from .utils.paths import get_metapath_counts_for_node
-        node_counter = get_metapath_counts_for_node(query_node)
+        node_counter = get_metapath_counts_for_node(query_node, metanodes)
         output = {
             'query-node': query_node,
             'count': len(node_counter),

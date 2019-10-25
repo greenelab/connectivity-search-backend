@@ -242,10 +242,13 @@ def get_neo4j_rel_info(rel_ids):
     return id_to_info
 
 
-def get_metapath_counts_for_node(node):
+def get_metapath_counts_for_node(node, metanodes: list = None):
     """
     Return a dictionary (collections.Counter) of the number of metapaths from
     the input node to each other node in the PathCounts table.
+
+    `metanodes` is a list of metanode abbreviations, like `['G', 'MF']`, to subset 
+    other nodes by metanode. The default `metanodes=None` does not filter by metanode.
     """
     from django.db.models import Count, F
     from dj_hetmech_app.models import PathCount
@@ -255,6 +258,7 @@ def get_metapath_counts_for_node(node):
         .filter(search_against=node)
         .values('node')
         .annotate(n_metapaths=Count('node'))
+        .filter(**({} if metanodes is None else {'target__metanode__abbreviation__in': metanodes}))
         .order_by('-n_metapaths')
     ).union((
         PathCount.objects
@@ -262,6 +266,7 @@ def get_metapath_counts_for_node(node):
         .filter(search_against=node)
         .values('node')
         .annotate(n_metapaths=Count('node'))
+        .filter(**({} if metanodes is None else {'source__metanode__abbreviation__in': metanodes}))
         .order_by('-n_metapaths')
     ), all=True)
 
