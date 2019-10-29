@@ -146,23 +146,8 @@ class QueryMetapathsView(APIView):
     http_method_names = ['get']
 
     def get(self, request, source, target):
-        # Validate "source" parameter
-        try:
-            source_node = Node.objects.get(pk=source)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': f'source={source}: node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Validate "target" parameter
-        try:
-            target_node = Node.objects.get(pk=target)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': f'target={target}: node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+        source_node = get_object_or_400(Node, pk=source)
+        target_node = get_object_or_400(Node, pk=target)
 
         from .utils.paths import get_pathcount_queryset, get_metapath_queryset
         pathcounts = get_pathcount_queryset(source, target)
@@ -201,24 +186,8 @@ class QueryPathsView(APIView):
     http_method_names = ['get']
 
     def get(self, request, source, target, metapath):
-        # Validate "source" parameter
-        try:
-            source_node = Node.objects.get(pk=source)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': f'source={source}: node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Validate "target" parameter
-        try:
-            target_node = Node.objects.get(pk=target)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': f'target={target}: node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
+        source_node = get_object_or_400(Node, pk=source)
+        target_node = get_object_or_400(Node, pk=target)
         # TODO: validate "metapath" is a valid abbreviation
 
         # Validate "max-paths" (default to 100 if not found in URL)
@@ -286,3 +255,20 @@ class CountMetapathsToView(APIView):
             other_node_obj['metapath_count'] = count
             output['results'].append(other_node_obj)
         return Response(output)
+
+
+def get_object_or_400(klass, *args, **kwargs):
+    '''
+    Like `django.shortcuts.get_object_or_404` but raises a ParseError.
+    '''
+    from django.shortcuts import _get_queryset
+    from rest_framework.exceptions import ParseError
+    queryset = _get_queryset(klass)
+    try:
+        return queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist as e:
+        error = e
+    except queryset.model.MultipleObjectsReturned as e:
+        error = e
+    message = f"{error} Lookup parameters: args={args} kwargs={kwargs}"
+    raise ParseError(message)
