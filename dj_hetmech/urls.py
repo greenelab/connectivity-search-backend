@@ -25,8 +25,7 @@ urlpatterns = [
     path('v1/node/<int:pk>', views.NodeViewSet.as_view({'get': 'retrieve'}), name='node'),
     path('v1/nodes/', views.NodeViewSet.as_view({'get': 'list'}), name='nodes'),
     path('v1/random-node-pair/', views.RandomNodePairView.as_view(), name="random-node-pair"),
-    path('v1/count-metapaths-to/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
-    path('v1/count-metapaths-to/<int:query_node>/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
+    path('v1/count-metapaths-to/<int:node>/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
     path('v1/metapaths/source/<int:source>/target/<int:target>/', views.QueryMetapathsView.as_view(), name="metapaths"),
     path('v1/paths/source/<int:source>/target/<int:target>/metapath/<str:metapath>/', views.QueryPathsView.as_view(), name="paths"),
 ]

@@ -20,10 +20,10 @@ def api_root(request):
     return Response({
         'node': reverse('node', request=request, kwargs={'pk': 2}),
         'nodes': reverse('nodes', request=request),
-        'random-node-pair': reverse('random-node-pair', request=request),
-        'count-metapaths-to': reverse('count-metapaths-to', request=request),
+        'count-metapaths-to': reverse('count-metapaths-to', request=request, kwargs={'node': 2}),
         'metapaths': reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
         'paths': reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
+        'random-node-pair': reverse('random-node-pair', request=request),
     })
 
 
@@ -59,7 +59,6 @@ class NodeViewSet(ReadOnlyModelViewSet):
         """Optionally restricts the returned nodes based on `metanodes` and
         `search` parameters in the URL.
         """
-
         queryset = Node.objects.all()
 
         # 'metanodes' parameter for exact match on metanode abbreviation
@@ -216,13 +215,7 @@ class CountMetapathsToView(APIView):
     """
     http_method_names = ['get']
 
-    def get(self, request, query_node=None):
-        if query_node is None:
-            return Response(
-                {'error': 'must specify a query node like `count-metapaths-to/50/`'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
+    def get(self, request, node):
         # Validate "max-nodes" (default to 100 if not found in URL)
         max_nodes = request.query_params.get('max-nodes', '50')
         try:
@@ -241,9 +234,9 @@ class CountMetapathsToView(APIView):
             metanodes = metanodes.split(',')
 
         from .utils.paths import get_metapath_counts_for_node
-        node_counter = get_metapath_counts_for_node(query_node, metanodes)
+        node_counter = get_metapath_counts_for_node(node, metanodes)
         output = {
-            'query-node': query_node,
+            'query-node': node,
             'metanodes': metanodes,
             'count': len(node_counter),
             'max-nodes': max_nodes,
