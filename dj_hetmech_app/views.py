@@ -22,8 +22,8 @@ def api_root(request):
         'nodes': reverse('nodes', request=request),
         'random-node-pair': reverse('random-node-pair', request=request),
         'count-metapaths-to': reverse('count-metapaths-to', request=request),
-        'metapaths': reverse('metapaths', request=request),
-        'paths': reverse('paths', request=request),
+        'metapaths': reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
+        'paths': reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
     })
 
 
@@ -145,39 +145,27 @@ class QueryMetapathsView(APIView):
     """
     http_method_names = ['get']
 
-    def get(self, request):
+    def get(self, request, source, target):
         # Validate "source" parameter
-        source_id = request.query_params.get('source', None)
-        if source_id is None:
-            return Response(
-                {'error': 'source parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         try:
-            source_node = Node.objects.get(pk=source_id)
+            source_node = Node.objects.get(pk=source)
         except Node.DoesNotExist:
             return Response(
-                {'error': 'source node not found in database'},
+                {'error': f'source={source}: node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         # Validate "target" parameter
-        target_id = request.query_params.get('target', None)
-        if target_id is None:
-            return Response(
-                {'error': 'target parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         try:
-            target_node = Node.objects.get(pk=target_id)
+            target_node = Node.objects.get(pk=target)
         except Node.DoesNotExist:
             return Response(
-                {'error': 'target node not found in database'},
+                {'error': f'target={target}: node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         from .utils.paths import get_pathcount_queryset, get_metapath_queryset
-        pathcounts = get_pathcount_queryset(source_id, target_id)
+        pathcounts = get_pathcount_queryset(source, target)
         pathcounts = PathCountDgpSerializer(pathcounts, many=True).data
         pathcounts.sort(key=lambda x: (x['adjusted_p_value'], x['p_value'], x['metapath_abbreviation']))
 
@@ -212,43 +200,25 @@ class QueryPathsView(APIView):
     """
     http_method_names = ['get']
 
-    def get(self, request):
+    def get(self, request, source, target, metapath):
         # Validate "source" parameter
-        source_id = request.query_params.get('source', None)
-        if source_id is None:
-            return Response(
-                {'error': 'source parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         try:
-            source_node = Node.objects.get(pk=source_id)
+            source_node = Node.objects.get(pk=source)
         except Node.DoesNotExist:
             return Response(
-                {'error': 'source node not found in database'},
+                {'error': f'source={source}: node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         # Validate "target" parameter
-        target_id = request.query_params.get('target', None)
-        if target_id is None:
-            return Response(
-                {'error': 'target parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         try:
-            target_node = Node.objects.get(pk=target_id)
+            target_node = Node.objects.get(pk=target)
         except Node.DoesNotExist:
             return Response(
-                {'error': 'target node not found in database'},
+                {'error': f'target={target}: node not found in database'},
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        metapath = request.query_params.get('metapath', None)
-        if metapath is None:
-            return Response(
-                {'error': 'metapath parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
         # TODO: validate "metapath" is a valid abbreviation
 
         # Validate "max-paths" (default to 100 if not found in URL)

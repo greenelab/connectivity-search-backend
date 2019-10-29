@@ -27,6 +27,6 @@ urlpatterns = [
     path('v1/random-node-pair/', views.RandomNodePairView.as_view(), name="random-node-pair"),
     path('v1/count-metapaths-to/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
     path('v1/count-metapaths-to/<int:query_node>/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
-    path('v1/metapaths/', views.QueryMetapathsView.as_view(), name="metapaths"),
-    path('v1/paths/', views.QueryPathsView.as_view(), name="paths"),
+    path('v1/metapaths/source/<int:source>/target/<int:target>/', views.QueryMetapathsView.as_view(), name="metapaths"),
+    path('v1/paths/source/<int:source>/target/<int:target>/metapath/<str:metapath>/', views.QueryPathsView.as_view(), name="paths"),
 ]
