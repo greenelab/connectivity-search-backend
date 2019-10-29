@@ -22,8 +22,8 @@ def api_root(request):
         'nodes': reverse('nodes', request=request),
         'random-node-pair': reverse('random-node-pair', request=request),
         'count-metapaths-to': reverse('count-metapaths-to', request=request),
-        'query-metapaths': reverse('query-metapaths', request=request),
-        'query-paths': reverse('query-paths', request=request),
+        'metapaths': reverse('metapaths', request=request),
+        'paths': reverse('paths', request=request),
     })
 
 
