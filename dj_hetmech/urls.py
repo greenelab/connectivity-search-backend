@@ -18,11 +18,12 @@ from rest_framework import routers
 from dj_hetmech_app import views
 
 router = routers.DefaultRouter()
-router.register("nodes", views.NodeViewSet, basename="node")
 
 urlpatterns = [
     path('v1/', views.api_root),
     path('v1/', include(router.urls)),
+    path('v1/node/<int:pk>', views.NodeViewSet.as_view({'get': 'retrieve'}), name='node'),
+    path('v1/nodes/', views.NodeViewSet.as_view({'get': 'list'}), name='nodes'),
     path('v1/random-node-pair/', views.RandomNodePairView.as_view(), name="random-node-pair"),
     path('v1/count-metapaths-to/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),
     path('v1/count-metapaths-to/<int:query_node>/', views.CountMetapathsToView.as_view(), name="count-metapaths-to"),

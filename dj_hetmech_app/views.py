@@ -18,7 +18,8 @@ def api_root(request):
     Please use GitHub Issues for any questions or feedback.
     """
     return Response({
-        'nodes': reverse('node-list', request=request),
+        #'node': reverse('node', request=request),
+        'nodes': reverse('nodes', request=request),
         'random-node-pair': reverse('random-node-pair', request=request),
         'count-metapaths-to': reverse('count-metapaths-to', request=request),
         'query-metapaths': reverse('query-metapaths', request=request),
