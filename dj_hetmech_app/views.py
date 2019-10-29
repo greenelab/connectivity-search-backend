@@ -17,19 +17,19 @@ def api_root(request):
     The codebase for this API is available at <https://github.com/greenelab/hetmech-backend>.
     Please use GitHub Issues for any questions or feedback.
     """
-    return Response({
-        'node': reverse('node', request=request, kwargs={'pk': 2}),
-        'nodes': reverse('nodes', request=request),
-        'count-metapaths-to': reverse('count-metapaths-to', request=request, kwargs={'node': 2}),
-        'metapaths': reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
-        'paths': reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
-        'random-node-pair': reverse('random-node-pair', request=request),
-    })
+    return Response([
+        reverse('node', request=request, kwargs={'pk': 2}),
+        reverse('nodes', request=request),
+        reverse('count-metapaths-to', request=request, kwargs={'node': 2}),
+        reverse('random-node-pair', request=request),
+        reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
+        reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
+    ])
 
 
 class NodeViewSet(ReadOnlyModelViewSet):
     """
-    Return nodes in the network that match the search term (sometimes partially).
+    Return nodes, sorted by similarity to the search term.
     Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
     Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
     Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0]. (Set the value to 1.0 to exclude trigram search.)
@@ -209,7 +209,7 @@ class QueryPathsView(APIView):
 
 class CountMetapathsToView(APIView):
     """
-    Given a node, find the other nodes with the highest number of metapaths in the database.
+    Return nodes, sorted by the number of metapaths in the database to the query node.
     Specify, `metanodes=<str>` to filter the other nodes to a subset of metanodes.
     For example, `metanodes=G,MF` restricts other nodes to Genes and Molecular Functions.
     """
@@ -217,16 +217,16 @@ class CountMetapathsToView(APIView):
 
     def get(self, request, node):
         # Validate "max-nodes" (default to 100 if not found in URL)
-        max_nodes = request.query_params.get('max-nodes', '50')
+        limit = request.query_params.get('limit', '50')
         try:
-            max_nodes = int(max_nodes)
+            limit = int(limit)
         except Exception:
             return Response(
-                {'error': 'max-nodes is not a valid number'},
+                {'error': 'limit is not a valid number'},
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        if max_nodes < 0:
-            max_nodes = None
+        if limit < 0:
+            limit = None
 
         # 'metanodes' parameter for exact match on metanode abbreviation
         metanodes = self.request.query_params.get('metanodes', None)
@@ -236,13 +236,13 @@ class CountMetapathsToView(APIView):
         from .utils.paths import get_metapath_counts_for_node
         node_counter = get_metapath_counts_for_node(node, metanodes)
         output = {
-            'query-node': node,
+            'count-metapaths-to': node,
             'metanodes': metanodes,
             'count': len(node_counter),
-            'max-nodes': max_nodes,
+            'limit': limit,
             'results': [],
         }
-        for other_node, count in node_counter.most_common(n=max_nodes):
+        for other_node, count in node_counter.most_common(n=limit):
             other_node = Node.objects.get(pk=other_node)
             other_node_obj = NodeSerializer(other_node).data
             other_node_obj['metapath_count'] = count
