@@ -1,7 +1,7 @@
 import functools
 
 from django.db.models import Q
-from rest_framework import filters, status
+from rest_framework import filters
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -22,7 +22,6 @@ def api_root(request):
     return Response([
         reverse('node', request=request, kwargs={'pk': 2}),
         reverse('nodes', request=request),
-        reverse('other-node', request=request, kwargs={'node': 2}),
         reverse('random-node-pair', request=request),
         reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
         reverse('metapaths-random-nodes', request=request),
@@ -230,38 +229,6 @@ class QueryPathsView(APIView):
 
         from .utils.paths import get_paths
         output = get_paths(metapath, source_node.id, target_node.id, limit=limit)
-        return Response(output)
-
-
-class CountMetapathsToView(APIView):
-    """
-    Return nodes, sorted by the number of metapaths in the database to the query node.
-    Specify, `metanodes=<str>` to filter the other nodes to a subset of metanodes.
-    For example, `metanodes=G,MF` restricts other nodes to Genes and Molecular Functions.
-    If not specified, `limit` defaults to 50 nodes.
-    """
-    http_method_names = ['get']
-
-    def get(self, request, node):
-        limit = get_limit(request, default=50)
-
-        # 'metanodes' parameter for exact match on metanode abbreviation
-        metanodes = get_metanodes(self.request)
-
-        from .utils.paths import get_metapath_counts_for_node
-        node_counter = get_metapath_counts_for_node(node, metanodes)
-        output = {
-            'other-node': node,
-            'metanodes': metanodes,
-            'count': len(node_counter),
-            'limit': limit,
-            'results': [],
-        }
-        for other_node, count in node_counter.most_common(n=limit):
-            other_node = Node.objects.get(pk=other_node)
-            other_node_obj = NodeSerializer(other_node).data
-            other_node_obj['metapath_count'] = count
-            output['results'].append(other_node_obj)
         return Response(output)
 
 

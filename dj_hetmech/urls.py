@@ -24,7 +24,6 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     path('v1/node/<int:pk>', views.NodeViewSet.as_view({'get': 'retrieve'}), name='node'),
     path('v1/nodes/', views.NodeViewSet.as_view({'get': 'list'}), name='nodes'),
-    path('v1/nodes/other-node/<int:node>/', views.CountMetapathsToView.as_view(), name="other-node"),
     path('v1/random-node-pair/', views.RandomNodePairView.as_view(), name="random-node-pair"),
     path('v1/metapaths/source/<int:source>/target/<int:target>/', views.QueryMetapathsView.as_view(), name="metapaths"),
     path('v1/metapaths/random-nodes/', views.QueryMetapathsRandomNodesView.as_view(), name="metapaths-random-nodes"),
