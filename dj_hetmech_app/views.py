@@ -180,7 +180,7 @@ class QueryPathsView(APIView):
     For a given source node, target node, and metapath, return the actual paths comprising the path count / DWPC.
     These paths have not been pre-computed and are extracted on-the-fly from the Hetionet Neo4j Browser.
     Therefore, it is advisable to avoid querying a source-target-metapath pair with a path count exceeding 10,000.
-    Because results are ordered by PDP / percent_of_DWPC, reducing max_paths does not prevent neo4j from having to exhaustively traverse all paths.
+    Because results are ordered by PDP / percent_of_DWPC, reducing `limit` does not prevent neo4j from having to exhaustively traverse all paths.
     """
     http_method_names = ['get']
 
@@ -189,21 +189,20 @@ class QueryPathsView(APIView):
         target_node = get_object_or_404(Node, pk=target)
         # TODO: validate "metapath" is a valid abbreviation
 
-        # Validate "max-paths" (default to 100 if not found in URL)
-        max_paths = request.query_params.get('max-paths', '100')
+        # Validate "limit" (default to 100 if not found in URL)
+        limit = request.query_params.get('limit', '100')
         try:
-            max_paths = int(max_paths)
+            limit = int(limit)
         except Exception:
             return Response(
-                {'error': 'max-paths is not a valid number'},
+                {'error': 'limit is not a valid number'},
                 status=status.HTTP_400_BAD_REQUEST
             )
-
-        if max_paths < 0:
-            max_paths = None
+        if limit < 0:
+            limit = None
 
         from .utils.paths import get_paths
-        output = get_paths(metapath, source_node.id, target_node.id, limit=max_paths)
+        output = get_paths(metapath, source_node.id, target_node.id, limit=limit)
         return Response(output)
 
 
@@ -216,7 +215,7 @@ class CountMetapathsToView(APIView):
     http_method_names = ['get']
 
     def get(self, request, node):
-        # Validate "max-nodes" (default to 100 if not found in URL)
+        # Validate "limit" (default to 100 if not found in URL)
         limit = request.query_params.get('limit', '50')
         try:
             limit = int(limit)
