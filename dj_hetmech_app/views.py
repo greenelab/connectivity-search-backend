@@ -145,8 +145,8 @@ class QueryMetapathsView(APIView):
     http_method_names = ['get']
 
     def get(self, request, source, target):
-        source_node = get_object_or_400(Node, pk=source)
-        target_node = get_object_or_400(Node, pk=target)
+        source_node = get_object_or_404(Node, pk=source)
+        target_node = get_object_or_404(Node, pk=target)
 
         from .utils.paths import get_pathcount_queryset, get_metapath_queryset
         pathcounts = get_pathcount_queryset(source, target)
@@ -185,8 +185,8 @@ class QueryPathsView(APIView):
     http_method_names = ['get']
 
     def get(self, request, source, target, metapath):
-        source_node = get_object_or_400(Node, pk=source)
-        target_node = get_object_or_400(Node, pk=target)
+        source_node = get_object_or_404(Node, pk=source)
+        target_node = get_object_or_404(Node, pk=target)
         # TODO: validate "metapath" is a valid abbreviation
 
         # Validate "max-paths" (default to 100 if not found in URL)
@@ -250,12 +250,12 @@ class CountMetapathsToView(APIView):
         return Response(output)
 
 
-def get_object_or_400(klass, *args, **kwargs):
+def get_object_or_404(klass, *args, **kwargs):
     '''
-    Like `django.shortcuts.get_object_or_404` but raises a ParseError.
+    Similar to `django.shortcuts.get_object_or_404` but raises NotFound and produces a more verbose error message.
     '''
     from django.shortcuts import _get_queryset
-    from rest_framework.exceptions import ParseError
+    from rest_framework.exceptions import NotFound
     queryset = _get_queryset(klass)
     try:
         return queryset.get(*args, **kwargs)
@@ -264,4 +264,4 @@ def get_object_or_400(klass, *args, **kwargs):
     except queryset.model.MultipleObjectsReturned as e:
         error = e
     message = f"{error} Lookup parameters: args={args} kwargs={kwargs}"
-    raise ParseError(message)
+    raise NotFound(message)
