@@ -140,6 +140,7 @@ class QueryMetapathsView(APIView):
     """
     Return metapaths between a given source and target node whose path count information is stored in the database.
     Specify `complete` to also return metapaths of unknown significance whose path count information is not stored in the database.
+    If not specified, `limit` defaults to returning all metapaths (i.e. without limit).
 
     The database only stores a single orientation of a metapath.
     For example, if GpPpGaD is stored between the given source and target node, DaGpPpG would not also be stored.
@@ -150,11 +151,14 @@ class QueryMetapathsView(APIView):
     def get(self, request, source, target):
         source_node = get_object_or_404(Node, pk=source)
         target_node = get_object_or_404(Node, pk=target)
+        limit = get_limit(request, default=None)
 
         from .utils.paths import get_pathcount_queryset, get_metapath_queryset
         pathcounts = get_pathcount_queryset(source, target)
         pathcounts = PathCountDgpSerializer(pathcounts, many=True).data
         pathcounts.sort(key=lambda x: (x['adjusted_p_value'], x['p_value'], x['metapath_abbreviation']))
+        if limit is not None:
+            pathcounts = pathcounts[:limit]
 
         if 'complete' in request.query_params:
             metapaths_present = {x['metapath_id'] for x in pathcounts}
@@ -163,7 +167,13 @@ class QueryMetapathsView(APIView):
                 target_node.metanode,
                 extra_filters=~Q(abbreviation__in=metapaths_present),
             )
+            if limit is not None:
+                metapath_qs = metapath_qs[:limit - len(pathcounts)]
             pathcounts += MetapathSerializer(metapath_qs, many=True).data
+
+        # `metapath_qs = metapath_qs[:0]` doesn't filter to an empty query set`
+        if limit is not None:
+            pathcounts = pathcounts[:limit]
 
         remove_keys = {'source', 'target', 'metapath_source', 'metapath_target'}
         for dictionary in pathcounts:
@@ -205,18 +215,7 @@ class QueryPathsView(APIView):
         source_node = get_object_or_404(Node, pk=source)
         target_node = get_object_or_404(Node, pk=target)
         # TODO: validate "metapath" is a valid abbreviation
-
-        # Validate "limit" (default to 100 if not found in URL)
-        limit = request.query_params.get('limit', '100')
-        try:
-            limit = int(limit)
-        except Exception:
-            return Response(
-                {'error': 'limit is not a valid number'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        if limit < 0:
-            limit = None
+        limit = get_limit(request, default=100)
 
         from .utils.paths import get_paths
         output = get_paths(metapath, source_node.id, target_node.id, limit=limit)
@@ -228,21 +227,12 @@ class CountMetapathsToView(APIView):
     Return nodes, sorted by the number of metapaths in the database to the query node.
     Specify, `metanodes=<str>` to filter the other nodes to a subset of metanodes.
     For example, `metanodes=G,MF` restricts other nodes to Genes and Molecular Functions.
+    If not specified, `limit` defaults to 50 nodes.
     """
     http_method_names = ['get']
 
     def get(self, request, node):
-        # Validate "limit" (default to 100 if not found in URL)
-        limit = request.query_params.get('limit', '50')
-        try:
-            limit = int(limit)
-        except Exception:
-            return Response(
-                {'error': 'limit is not a valid number'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if limit < 0:
-            limit = None
+        limit = get_limit(request, default=50)
 
         # 'metanodes' parameter for exact match on metanode abbreviation
         metanodes = self.request.query_params.get('metanodes', None)
@@ -281,3 +271,17 @@ def get_object_or_404(klass, *args, **kwargs):
         error = e
     message = f"{error} Lookup parameters: args={args} kwargs={kwargs}"
     raise NotFound(message)
+
+
+def get_limit(request, default: int = 100):
+    from rest_framework.exceptions import ParseError
+    limit = request.query_params.get('limit', default)
+    if limit is None:
+        return None
+    try:
+        limit = int(limit)
+    except Exception:
+        raise ParseError("limit is not a valid number")
+    if limit < 0:
+        limit = None
+    return limit
