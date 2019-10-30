@@ -12,7 +12,7 @@ class NodeSerializer(serializers.ModelSerializer):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         request = self.context.get("request")
-        if not request or 'count-metapaths-to' not in request.query_params:
+        if not request or 'other-node' not in request.query_params:
             del self.fields['metapath_count']
 
     class Meta:

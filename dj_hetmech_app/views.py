@@ -1,3 +1,5 @@
+import functools
+
 from django.db.models import Q
 from rest_framework import filters, status
 from rest_framework.decorators import api_view
@@ -20,7 +22,7 @@ def api_root(request):
     return Response([
         reverse('node', request=request, kwargs={'pk': 2}),
         reverse('nodes', request=request),
-        reverse('count-metapaths-to', request=request, kwargs={'node': 2}),
+        reverse('other-node', request=request, kwargs={'node': 2}),
         reverse('random-node-pair', request=request),
         reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
         reverse('metapaths-random-nodes', request=request),
@@ -31,21 +33,27 @@ def api_root(request):
 class NodeViewSet(ReadOnlyModelViewSet):
     """
     Return nodes, sorted by similarity to the search term.
-    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
     Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
-    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0]. (Set the value to 1.0 to exclude trigram search.)
+    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0].
+    Set `similarity=1.0` to exclude trigram search.
+
+    Set `other-node=node_id` to return non-null values for `metapath_count`.
+    `metapath_counts` measures the number of metapaths stored in the database between the result node and other node.
+    If `search` and `other-node` and both specified, results are sorted by search similarity and results with `metapath_count == 0` are returned.
+    If `other-node` is specified but not `search`, results are sorted by `metapath_count` (descending) and only results with `metapath_count > 0` are returned.
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
 
+    @functools.lru_cache()
     def get_serializer_context(self):
         """
-        Add metapath_counts to context if "count-metapaths-to" was specified.
+        Add metapath_counts to context if "other-node" was specified.
         https://stackoverflow.com/a/52859696/4651668
         """
         context = super().get_serializer_context()
-        search_against = context['request'].query_params.get('count-metapaths-to')
+        search_against = context['request'].query_params.get('other-node')
         if search_against is None:
             return context
         try:
@@ -105,6 +113,10 @@ class NodeViewSet(ReadOnlyModelViewSet):
             ).order_by(
                 '-identifier_prefix_match', '-name_substr_match', '-similarity', 'name'
             )
+        elif 'other-node' in self.request.query_params:
+            metapath_counts = self.get_serializer_context()['metapath_counts']
+            queryset = queryset.filter(pk__in=set(metapath_counts))
+            queryset = sorted(queryset, key=lambda node: metapath_counts[node.pk], reverse=True)
 
         return queryset
 
@@ -239,7 +251,7 @@ class CountMetapathsToView(APIView):
         from .utils.paths import get_metapath_counts_for_node
         node_counter = get_metapath_counts_for_node(node, metanodes)
         output = {
-            'count-metapaths-to': node,
+            'other-node': node,
             'metanodes': metanodes,
             'count': len(node_counter),
             'limit': limit,
