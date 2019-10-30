@@ -23,6 +23,7 @@ def api_root(request):
         reverse('count-metapaths-to', request=request, kwargs={'node': 2}),
         reverse('random-node-pair', request=request),
         reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
+        reverse('metapaths-random-nodes', request=request),
         reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
     ])
 
@@ -138,6 +139,8 @@ class RandomNodePairView(APIView):
 class QueryMetapathsView(APIView):
     """
     Return metapaths between a given source and target node whose path count information is stored in the database.
+    Specify `complete` to also return metapaths of unknown significance whose path count information is not stored in the database.
+
     The database only stores a single orientation of a metapath.
     For example, if GpPpGaD is stored between the given source and target node, DaGpPpG would not also be stored.
     Therefore, both orientations of a metapath are searched against the PathCount table.
@@ -173,6 +176,20 @@ class QueryMetapathsView(APIView):
             'path_counts': pathcounts,
         }
         return Response(data)
+
+
+class QueryMetapathsRandomNodesView(QueryMetapathsView):
+    """
+    Return metapaths for a random source and target node for which at least one metapath with path count information exists in the database.
+    """
+    def get(self, request):
+        info = RandomNodePairView().get(request=None).data
+        response = super().get(
+            request,
+            source=info.pop('source_id'),
+            target=info.pop('target_id'))
+        response.data.update(info)
+        return response
 
 
 class QueryPathsView(APIView):
