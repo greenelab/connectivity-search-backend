@@ -63,9 +63,8 @@ class NodeViewSet(ReadOnlyModelViewSet):
         queryset = Node.objects.all()
 
         # 'metanodes' parameter for exact match on metanode abbreviation
-        metanodes_str = self.request.query_params.get('metanodes', None)
-        if metanodes_str is not None:
-            metanodes = metanodes_str.split(',')
+        metanodes = get_metanodes(self.request)
+        if metanodes is not None:
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
 
         # 'search' parameter to search 'identifier' and 'name' fields
@@ -235,9 +234,7 @@ class CountMetapathsToView(APIView):
         limit = get_limit(request, default=50)
 
         # 'metanodes' parameter for exact match on metanode abbreviation
-        metanodes = self.request.query_params.get('metanodes', None)
-        if metanodes is not None:
-            metanodes = metanodes.split(',')
+        metanodes = get_metanodes(self.request)
 
         from .utils.paths import get_metapath_counts_for_node
         node_counter = get_metapath_counts_for_node(node, metanodes)
@@ -271,6 +268,14 @@ def get_object_or_404(klass, *args, **kwargs):
         error = e
     message = f"{error} Lookup parameters: args={args} kwargs={kwargs}"
     raise NotFound(message)
+
+
+def get_metanodes(request):
+    metanodes = request.query_params.get('metanodes')
+    if metanodes is not None:
+        assert isinstance(metanodes, str)
+        metanodes = metanodes.split(',')
+    return metanodes
 
 
 def get_limit(request, default: int = 100):
