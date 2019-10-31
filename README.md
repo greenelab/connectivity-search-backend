@@ -14,6 +14,12 @@ conda env create --file=environment.yml
 
 Then use `conda activate hetmech-backend` and `conda deactivate` to activate or deactivate the environment.
 
+## Secrets
+
+Users must supply `dj_hetmech/secrets.yml` with the database connection information.
+See [`dj_hetmech/secrets-template.yml`](dj_hetmech/secrets-template.yml) for what fields should be defined.
+These secrets will determine whether django connects to a local database or a remote database.
+
 ## Notebooks
 
 Use the [following command](https://medium.com/ayuth/how-to-use-django-in-jupyter-notebook-561ea2401852) to launch Jupyter Notebook in your browser for interactive development:
@@ -22,10 +28,22 @@ Use the [following command](https://medium.com/ayuth/how-to-use-django-in-jupyte
 python manage.py shell_plus --notebook
 ```
 
+## Server
+
+A local development server can be started with the command:
+
+```shell
+python manage.py runserver
+```
+
+This exposes the API at <http://localhost:8000/v1/>.
+
 ## Database
 
 This project uses a PostgreSQL database.
-Currently, the database is configured for development, and is run via Docker:
+The deployed version of this application uses a remote database.
+
+To erect a new database locally for development, run:
 
 ```shell
 # https://docs.docker.com/samples/library/postgres/
