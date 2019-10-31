@@ -1,5 +1,7 @@
+import functools
+
 from django.db.models import Q
-from rest_framework import filters, status
+from rest_framework import filters
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.reverse import reverse
@@ -17,33 +19,40 @@ def api_root(request):
     The codebase for this API is available at <https://github.com/greenelab/hetmech-backend>.
     Please use GitHub Issues for any questions or feedback.
     """
-    return Response({
-        'nodes': reverse('node-list', request=request),
-        'random-node-pair': reverse('random-node-pair', request=request),
-        'count-metapaths-to': reverse('count-metapaths-to', request=request),
-        'query-metapaths': reverse('query-metapaths', request=request),
-        'query-paths': reverse('query-paths', request=request),
-    })
+    return Response([
+        reverse('node', request=request, kwargs={'pk': 2}),
+        reverse('nodes', request=request),
+        reverse('random-node-pair', request=request),
+        reverse('metapaths', request=request, kwargs={'source': 17054, 'target': 6602}),
+        reverse('metapaths-random-nodes', request=request),
+        reverse('paths', request=request, kwargs={'source': 17054, 'target': 6602, 'metapath': 'CbGeAlD'}),
+    ])
 
 
 class NodeViewSet(ReadOnlyModelViewSet):
     """
-    Return nodes in the network that match the search term (sometimes partially).
-    Use `count-metapaths-to=node_id` to return non-null values for metapath_counts;
+    Return nodes, sorted by similarity to the search term.
     Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
-    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0]. (Set the value to 1.0 to exclude trigram search.)
+    Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0].
+    Set `similarity=1.0` to exclude trigram search.
+
+    Set `other-node=<node_id>` to return non-null values for `metapath_count`.
+    `metapath_counts` measures the number of metapaths stored in the database between the result node and other node.
+    If `search` and `other-node` and both specified, results are sorted by search similarity and results with `metapath_count == 0` are returned.
+    If `other-node` is specified but not `search`, results are sorted by `metapath_count` (descending) and only results with `metapath_count > 0` are returned.
     """
     http_method_names = ['get']
     serializer_class = NodeSerializer
     filter_backends = (filters.SearchFilter, )
 
+    @functools.lru_cache()
     def get_serializer_context(self):
         """
-        Add metapath_counts to context if "count-metapaths-to" was specified.
+        Add metapath_counts to context if "other-node" was specified.
         https://stackoverflow.com/a/52859696/4651668
         """
         context = super().get_serializer_context()
-        search_against = context['request'].query_params.get('count-metapaths-to')
+        search_against = context['request'].query_params.get('other-node')
         if search_against is None:
             return context
         try:
@@ -58,13 +67,11 @@ class NodeViewSet(ReadOnlyModelViewSet):
         """Optionally restricts the returned nodes based on `metanodes` and
         `search` parameters in the URL.
         """
-
         queryset = Node.objects.all()
 
         # 'metanodes' parameter for exact match on metanode abbreviation
-        metanodes_str = self.request.query_params.get('metanodes', None)
-        if metanodes_str is not None:
-            metanodes = metanodes_str.split(',')
+        metanodes = get_metanodes(self.request)
+        if metanodes is not None:
             queryset = queryset.filter(metanode__abbreviation__in=metanodes)
 
         # 'search' parameter to search 'identifier' and 'name' fields
@@ -105,6 +112,10 @@ class NodeViewSet(ReadOnlyModelViewSet):
             ).order_by(
                 '-identifier_prefix_match', '-name_substr_match', '-similarity', 'name'
             )
+        elif 'other-node' in self.request.query_params:
+            metapath_counts = self.get_serializer_context()['metapath_counts']
+            queryset = queryset.filter(pk__in=set(metapath_counts))
+            queryset = sorted(queryset, key=lambda node: metapath_counts[node.pk], reverse=True)
 
         return queryset
 
@@ -138,47 +149,26 @@ class RandomNodePairView(APIView):
 class QueryMetapathsView(APIView):
     """
     Return metapaths between a given source and target node whose path count information is stored in the database.
+    Specify `complete` to also return metapaths of unknown significance whose path count information is not stored in the database.
+    If not specified, `limit` defaults to returning all metapaths (i.e. without limit).
+
     The database only stores a single orientation of a metapath.
     For example, if GpPpGaD is stored between the given source and target node, DaGpPpG would not also be stored.
     Therefore, both orientations of a metapath are searched against the PathCount table.
     """
     http_method_names = ['get']
 
-    def get(self, request):
-        # Validate "source" parameter
-        source_id = request.query_params.get('source', None)
-        if source_id is None:
-            return Response(
-                {'error': 'source parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            source_node = Node.objects.get(pk=source_id)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': 'source node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Validate "target" parameter
-        target_id = request.query_params.get('target', None)
-        if target_id is None:
-            return Response(
-                {'error': 'target parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            target_node = Node.objects.get(pk=target_id)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': 'target node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
+    def get(self, request, source, target):
+        source_node = get_object_or_404(Node, pk=source)
+        target_node = get_object_or_404(Node, pk=target)
+        limit = get_limit(request, default=None)
 
         from .utils.paths import get_pathcount_queryset, get_metapath_queryset
-        pathcounts = get_pathcount_queryset(source_id, target_id)
+        pathcounts = get_pathcount_queryset(source, target)
         pathcounts = PathCountDgpSerializer(pathcounts, many=True).data
         pathcounts.sort(key=lambda x: (x['adjusted_p_value'], x['p_value'], x['metapath_abbreviation']))
+        if limit is not None:
+            pathcounts = pathcounts[:limit]
 
         if 'complete' in request.query_params:
             metapaths_present = {x['metapath_id'] for x in pathcounts}
@@ -187,7 +177,13 @@ class QueryMetapathsView(APIView):
                 target_node.metanode,
                 extra_filters=~Q(abbreviation__in=metapaths_present),
             )
+            if limit is not None:
+                metapath_qs = metapath_qs[:limit - len(pathcounts)]
             pathcounts += MetapathSerializer(metapath_qs, many=True).data
+
+        # `metapath_qs = metapath_qs[:0]` doesn't filter to an empty query set`
+        if limit is not None:
+            pathcounts = pathcounts[:limit]
 
         remove_keys = {'source', 'target', 'metapath_source', 'metapath_target'}
         for dictionary in pathcounts:
@@ -202,116 +198,74 @@ class QueryMetapathsView(APIView):
         return Response(data)
 
 
+class QueryMetapathsRandomNodesView(QueryMetapathsView):
+    """
+    Return metapaths for a random source and target node for which at least one metapath with path count information exists in the database.
+    """
+    def get(self, request):
+        info = RandomNodePairView().get(request=None).data
+        response = super().get(
+            request,
+            source=info.pop('source_id'),
+            target=info.pop('target_id'))
+        response.data.update(info)
+        return response
+
+
 class QueryPathsView(APIView):
     """
     For a given source node, target node, and metapath, return the actual paths comprising the path count / DWPC.
     These paths have not been pre-computed and are extracted on-the-fly from the Hetionet Neo4j Browser.
     Therefore, it is advisable to avoid querying a source-target-metapath pair with a path count exceeding 10,000.
-    Because results are ordered by PDP / percent_of_DWPC, reducing max_paths does not prevent neo4j from having to exhaustively traverse all paths.
+    Because results are ordered by PDP / percent_of_DWPC, reducing `limit` does not prevent neo4j from having to exhaustively traverse all paths.
     """
     http_method_names = ['get']
 
-    def get(self, request):
-        # Validate "source" parameter
-        source_id = request.query_params.get('source', None)
-        if source_id is None:
-            return Response(
-                {'error': 'source parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            source_node = Node.objects.get(pk=source_id)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': 'source node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        # Validate "target" parameter
-        target_id = request.query_params.get('target', None)
-        if target_id is None:
-            return Response(
-                {'error': 'target parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            target_node = Node.objects.get(pk=target_id)
-        except Node.DoesNotExist:
-            return Response(
-                {'error': 'target node not found in database'},
-                status=status.HTTP_404_NOT_FOUND
-            )
-
-        metapath = request.query_params.get('metapath', None)
-        if metapath is None:
-            return Response(
-                {'error': 'metapath parameter not found in URL'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+    def get(self, request, source, target, metapath):
+        source_node = get_object_or_404(Node, pk=source)
+        target_node = get_object_or_404(Node, pk=target)
         # TODO: validate "metapath" is a valid abbreviation
-
-        # Validate "max-paths" (default to 100 if not found in URL)
-        max_paths = request.query_params.get('max-paths', '100')
-        try:
-            max_paths = int(max_paths)
-        except Exception:
-            return Response(
-                {'error': 'max-paths is not a valid number'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if max_paths < 0:
-            max_paths = None
+        limit = get_limit(request, default=100)
 
         from .utils.paths import get_paths
-        output = get_paths(metapath, source_node.id, target_node.id, limit=max_paths)
+        output = get_paths(metapath, source_node.id, target_node.id, limit=limit)
         return Response(output)
 
 
-class CountMetapathsToView(APIView):
+def get_object_or_404(klass, *args, **kwargs):
     """
-    Given a node, find the other nodes with the highest number of metapaths in the database.
-    Specify, `metanodes=<str>` to filter the other nodes to a subset of metanodes.
-    For example, `metanodes=G,MF` restricts other nodes to Genes and Molecular Functions.
+    Similar to `django.shortcuts.get_object_or_404` but raises NotFound and produces a more verbose error message.
     """
-    http_method_names = ['get']
+    from django.shortcuts import _get_queryset
+    from rest_framework.exceptions import NotFound
+    queryset = _get_queryset(klass)
+    try:
+        return queryset.get(*args, **kwargs)
+    except queryset.model.DoesNotExist as e:
+        error = e
+    except queryset.model.MultipleObjectsReturned as e:
+        error = e
+    message = f"{error} Lookup parameters: args={args} kwargs={kwargs}"
+    raise NotFound(message)
 
-    def get(self, request, query_node=None):
-        if query_node is None:
-            return Response(
-                {'error': 'must specify a query node like `count-metapaths-to/50/`'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
 
-        # Validate "max-nodes" (default to 100 if not found in URL)
-        max_nodes = request.query_params.get('max-nodes', '50')
-        try:
-            max_nodes = int(max_nodes)
-        except Exception:
-            return Response(
-                {'error': 'max-nodes is not a valid number'},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        if max_nodes < 0:
-            max_nodes = None
+def get_metanodes(request):
+    metanodes = request.query_params.get('metanodes')
+    if metanodes is not None:
+        assert isinstance(metanodes, str)
+        metanodes = metanodes.split(',')
+    return metanodes
 
-        # 'metanodes' parameter for exact match on metanode abbreviation
-        metanodes = self.request.query_params.get('metanodes', None)
-        if metanodes is not None:
-            metanodes = metanodes.split(',')
 
-        from .utils.paths import get_metapath_counts_for_node
-        node_counter = get_metapath_counts_for_node(query_node, metanodes)
-        output = {
-            'query-node': query_node,
-            'metanodes': metanodes,
-            'count': len(node_counter),
-            'max-nodes': max_nodes,
-            'results': [],
-        }
-        for other_node, count in node_counter.most_common(n=max_nodes):
-            other_node = Node.objects.get(pk=other_node)
-            other_node_obj = NodeSerializer(other_node).data
-            other_node_obj['metapath_count'] = count
-            output['results'].append(other_node_obj)
-        return Response(output)
+def get_limit(request, default: int = 100):
+    from rest_framework.exceptions import ParseError
+    limit = request.query_params.get('limit', default)
+    if limit is None:
+        return None
+    try:
+        limit = int(limit)
+    except Exception:
+        raise ParseError("limit is not a valid number")
+    if limit < 0:
+        limit = None
+    return limit
