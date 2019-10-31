@@ -36,7 +36,7 @@ class NodeViewSet(ReadOnlyModelViewSet):
     Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0].
     Set `similarity=1.0` to exclude trigram search.
 
-    Set `other-node=node_id` to return non-null values for `metapath_count`.
+    Set `other-node=<node_id>` to return non-null values for `metapath_count`.
     `metapath_counts` measures the number of metapaths stored in the database between the result node and other node.
     If `search` and `other-node` and both specified, results are sorted by search similarity and results with `metapath_count == 0` are returned.
     If `other-node` is specified but not `search`, results are sorted by `metapath_count` (descending) and only results with `metapath_count > 0` are returned.
@@ -233,9 +233,9 @@ class QueryPathsView(APIView):
 
 
 def get_object_or_404(klass, *args, **kwargs):
-    '''
+    """
     Similar to `django.shortcuts.get_object_or_404` but raises NotFound and produces a more verbose error message.
-    '''
+    """
     from django.shortcuts import _get_queryset
     from rest_framework.exceptions import NotFound
     queryset = _get_queryset(klass)
