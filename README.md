@@ -1,6 +1,6 @@
 # connectivity search backend
 
-[![CircleCI](https://circleci.com/gh/greenelab/hetmech-backend.svg?style=svg)](https://circleci.com/gh/greenelab/hetmech-backend)
+[![CircleCI](https://circleci.com/gh/greenelab/connectivity-search-backend.svg?style=svg)](https://circleci.com/gh/greenelab/connectivity-search-backend)
 
 This django application powers the API available at <https://search-api.het.io/>.
 
