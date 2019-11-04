@@ -51,7 +51,7 @@ def get_pathcount_record(metapath, source_id, target_id, path_count, raw_dwpc):
     pathcount_record = pathcounts_qs.first()
     pathcounts_qs_count = pathcounts_qs.count()
     if pathcounts_qs_count > 1:
-        # see https://github.com/greenelab/hetmech-backend/issues/43
+        # see https://github.com/greenelab/connectivity-search-backend/issues/43
         import pandas
         qs_df = pandas.DataFrame.from_records(pathcounts_qs.all().values())
         logging.warning(

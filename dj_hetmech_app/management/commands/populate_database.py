@@ -187,7 +187,7 @@ class Command(BaseCommand):
 
     def _populate_node_table(self):
         """
-        Pulls nodes from neo4j as per https://github.com/greenelab/hetmech-backend/issues/36
+        Pulls nodes from neo4j as per https://github.com/greenelab/connectivity-search-backend/issues/36
         """
         metagraph = self._hetionet_metagraph
         query = '''
