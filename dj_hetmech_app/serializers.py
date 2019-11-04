@@ -39,7 +39,7 @@ class DgpSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Replace nan with None. https://github.com/greenelab/hetmech-backend/issues/63
+        # Replace nan with None. https://github.com/greenelab/connectivity-search-backend/issues/63
         from pandas import isna
         for key in 'nonzero_mean', 'nonzero_sd':
             if isna(data[key]):

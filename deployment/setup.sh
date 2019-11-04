@@ -47,7 +47,7 @@ bash ~/miniconda.sh -b -p ~/miniconda
 echo "source ~/miniconda/etc/profile.d/conda.sh" >> ~/.bashrc
 
 rm -rf ~/hetmech-backend
-git clone https://github.com/greenelab/hetmech-backend.git ~/hetmech-backend
+git clone https://github.com/greenelab/connectivity-search-backend.git ~/hetmech-backend
 source ~/miniconda/etc/profile.d/conda.sh
 conda env create --quiet --file ~/hetmech-backend/environment.yml
 conda activate hetmech-backend
