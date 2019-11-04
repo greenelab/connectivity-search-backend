@@ -4,7 +4,7 @@ import logging
 from django.db.models import Q
 import hetnetpy.neo4j
 
-from dj_hetmech_app.utils import (
+from dj_consearch_app.utils import (
     get_hetionet_metagraph,
     get_neo4j_driver,
 )
@@ -41,7 +41,7 @@ def get_pathcount_record(metapath, source_id, target_id, path_count, raw_dwpc):
     information and use raw_dwpc to create a PathCount record on the fly. If no
     null DWPC information exists, return None.
     """
-    from dj_hetmech_app.models import DegreeGroupedPermutation, Metapath, Node, PathCount
+    from dj_consearch_app.models import DegreeGroupedPermutation, Node, PathCount
 
     # Return the PathCount record if it is stored in the database 
     pathcounts_qs = PathCount.objects.filter(
@@ -51,7 +51,7 @@ def get_pathcount_record(metapath, source_id, target_id, path_count, raw_dwpc):
     pathcount_record = pathcounts_qs.first()
     pathcounts_qs_count = pathcounts_qs.count()
     if pathcounts_qs_count > 1:
-        # see https://github.com/greenelab/hetmech-backend/issues/43
+        # see https://github.com/greenelab/connectivity-search-backend/issues/43
         import pandas
         qs_df = pandas.DataFrame.from_records(pathcounts_qs.all().values())
         logging.warning(
@@ -109,7 +109,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
     metagraph = get_hetionet_metagraph()
     metapath = metagraph.get_metapath(metapath)
 
-    from dj_hetmech_app.models import Node
+    from dj_consearch_app.models import Node
     source_record = Node.objects.get(pk=source_id)
     target_record = Node.objects.get(pk=target_id)
     source_identifier = source_record.get_cast_identifier()
@@ -156,7 +156,7 @@ def get_paths(metapath, source_id, target_id, limit=None):
     node_id_to_info = get_neo4j_node_info(neo4j_node_ids)
     rel_id_to_info = get_neo4j_rel_info(neo4j_rel_ids)
     # TODO return better path_count_info when pathcount_record=None
-    from dj_hetmech_app.serializers import PathCountDgpSerializer
+    from dj_consearch_app.serializers import PathCountDgpSerializer
     path_count_info = PathCountDgpSerializer(pathcount_record).data if pathcount_record else {}
     json_obj = {
         'query': {
@@ -251,7 +251,7 @@ def get_metapath_counts_for_node(node, metanodes: list = None):
     other nodes by metanode. The default `metanodes=None` does not filter by metanode.
     """
     from django.db.models import Count, F
-    from dj_hetmech_app.models import PathCount
+    from dj_consearch_app.models import PathCount
     query_set = (
         PathCount.objects
         .annotate(search_against=F('source'), node=F('target'))
@@ -284,7 +284,7 @@ def get_metapath_queryset(source_metanode, target_metanode, extra_filters=None):
     WARNING: django cannot filter union querysets and does not create
     a warning (https://stackoverflow.com/a/49261966/4651668).
     """
-    from dj_hetmech_app.models import Metapath
+    from dj_consearch_app.models import Metapath
     from django.db.models import Value, BooleanField
     if extra_filters is None:
         from django.db.models import Q
@@ -307,7 +307,7 @@ def get_pathcount_queryset(source_node, target_node, extra_filters=None):
     Find pathcount records between a source and target node.
     Get back Pathcount table records, with an added reversed field.
     """
-    from dj_hetmech_app.models import PathCount
+    from dj_consearch_app.models import PathCount
     from django.db.models import Value, BooleanField
     if extra_filters is None:
         from django.db.models import Q
@@ -325,7 +325,7 @@ def get_pathcount_queryset(source_node, target_node, extra_filters=None):
 
 
 def get_metapath_instance(metapath):
-    from dj_hetmech_app.models import Metapath
+    from dj_consearch_app.models import Metapath
     from django.db.models import Value, BooleanField
     if isinstance(metapath, Metapath):
         return metapath

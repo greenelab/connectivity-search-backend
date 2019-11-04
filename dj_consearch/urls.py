@@ -1,4 +1,4 @@
-"""dj_hetmech URL Configuration
+"""dj_consearch URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/2.1/topics/http/urls/
@@ -15,7 +15,7 @@ Including another URLconf
 """
 from django.urls import path, include
 from rest_framework import routers
-from dj_hetmech_app import views
+from dj_consearch_app import views
 
 router = routers.DefaultRouter()
 

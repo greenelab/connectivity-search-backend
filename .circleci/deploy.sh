@@ -1,11 +1,11 @@
 #!/bin/bash
 
-cd ~/hetmech-backend
+cd ~/connectivity-search-backend
 git checkout master
 
 ENV_FILE="environment.yml"
 git remote update
-ENV_DIFF=`git diff origin $ENV_FILE`
+ENV_DIFF=$(git diff origin $ENV_FILE)
 git pull --ff-only
 
 # Update conda env if needed

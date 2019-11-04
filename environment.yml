@@ -1,4 +1,4 @@
-name: hetmech-backend
+name: consearch-backend
 channels:
   - conda-forge
 dependencies:

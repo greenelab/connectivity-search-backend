@@ -9,8 +9,8 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 603)">
 <title>model_graph</title>
 <polygon fill="white" stroke="none" points="-4,4 -4,-603 606.5,-603 606.5,4 -4,4"/>
-<!-- dj_hetmech_app_models_Metanode -->
-<g id="node1" class="node"><title>dj_hetmech_app_models_Metanode</title>
+<!-- dj_consearch_app_models_Metanode -->
+<g id="node1" class="node"><title>dj_consearch_app_models_Metanode</title>
 <polygon fill="palegoldenrod" stroke="none" points="97,-4 97,-60 262,-60 262,-4 97,-4"/>
 <polygon fill="#698b22" stroke="none" points="97.5,-43 97.5,-60 262.5,-60 262.5,-43 97.5,-43"/>
 <text text-anchor="start" x="146" y="-50.6" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -34,8 +34,8 @@
 <text text-anchor="start" x="178.5" y="-9.6" font-family="Helvetica " font-size="8.00">PositiveIntegerField</text>
 <text text-anchor="start" x="250.5" y="-9.6" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
-<!-- dj_hetmech_app_models_Node -->
-<g id="node2" class="node"><title>dj_hetmech_app_models_Node</title>
+<!-- dj_consearch_app_models_Node -->
+<g id="node2" class="node"><title>dj_consearch_app_models_Node</title>
 <polygon fill="palegoldenrod" stroke="none" points="8,-306.5 8,-414.5 197,-414.5 197,-306.5 8,-306.5"/>
 <polygon fill="#698b22" stroke="none" points="8.5,-397.5 8.5,-414.5 197.5,-414.5 197.5,-397.5 8.5,-397.5"/>
 <text text-anchor="start" x="78" y="-405.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -83,14 +83,14 @@
 <text text-anchor="start" x="95.5" y="-312.1" font-family="Helvetica " font-size="8.00">JSONField</text>
 <text text-anchor="start" x="135.5" y="-312.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
-<!-- dj_hetmech_app_models_Node&#45;&gt;dj_hetmech_app_models_Metanode -->
-<g id="edge1" class="edge"><title>dj_hetmech_app_models_Node&#45;&gt;dj_hetmech_app_models_Metanode</title>
+<!-- dj_consearch_app_models_Node&#45;&gt;dj_consearch_app_models_Metanode -->
+<g id="edge1" class="edge"><title>dj_consearch_app_models_Node&#45;&gt;dj_consearch_app_models_Metanode</title>
 <path fill="none" stroke="black" d="M92.9959,-294.09C88.1787,-242.018 87.6169,-168.295 111.5,-109 118.247,-92.2488 130.413,-76.781 142.608,-64.2332"/>
 <ellipse fill="black" stroke="black" cx="93.4092" cy="-298.275" rx="4" ry="4"/>
 <text text-anchor="middle" x="143" y="-178.1" font-family="Helvetica,sans-Serif" font-size="8.00">metanode (node)</text>
 </g>
-<!-- dj_hetmech_app_models_Metapath -->
-<g id="node3" class="node"><title>dj_hetmech_app_models_Metapath</title>
+<!-- dj_consearch_app_models_Metapath -->
+<g id="node3" class="node"><title>dj_consearch_app_models_Metapath</title>
 <polygon fill="palegoldenrod" stroke="none" points="192,-113 192,-247 403,-247 403,-113 192,-113"/>
 <polygon fill="#698b22" stroke="none" points="192.5,-230 192.5,-247 403.5,-247 403.5,-230 192.5,-230"/>
 <text text-anchor="start" x="265.5" y="-237.6" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -150,20 +150,20 @@
 <text text-anchor="start" x="300.5" y="-118.6" font-family="Helvetica " font-size="8.00">FloatField</text>
 <text text-anchor="start" x="336.5" y="-118.6" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
-<!-- dj_hetmech_app_models_Metapath&#45;&gt;dj_hetmech_app_models_Metanode -->
-<g id="edge2" class="edge"><title>dj_hetmech_app_models_Metapath&#45;&gt;dj_hetmech_app_models_Metanode</title>
+<!-- dj_consearch_app_models_Metapath&#45;&gt;dj_consearch_app_models_Metanode -->
+<g id="edge2" class="edge"><title>dj_consearch_app_models_Metapath&#45;&gt;dj_consearch_app_models_Metanode</title>
 <path fill="none" stroke="black" d="M187.008,-102.024C184.618,-98.4691 182.435,-94.7944 180.5,-91 176.337,-82.8358 175.007,-73.147 175.022,-64.0492"/>
 <ellipse fill="black" stroke="black" cx="189.504" cy="-105.471" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="228" y="-84.6" font-family="Helvetica,sans-Serif" font-size="8.00">source (metapath_source)</text>
 </g>
-<!-- dj_hetmech_app_models_Metapath&#45;&gt;dj_hetmech_app_models_Metanode -->
-<g id="edge3" class="edge"><title>dj_hetmech_app_models_Metapath&#45;&gt;dj_hetmech_app_models_Metanode</title>
+<!-- dj_consearch_app_models_Metapath&#45;&gt;dj_consearch_app_models_Metanode -->
+<g id="edge3" class="edge"><title>dj_consearch_app_models_Metapath&#45;&gt;dj_consearch_app_models_Metanode</title>
 <path fill="none" stroke="black" d="M286.537,-101.267C283.637,-94.3656 280.015,-87.8062 275.5,-82 270.216,-75.205 263.732,-69.2699 256.648,-64.105"/>
 <ellipse fill="black" stroke="black" cx="287.996" cy="-105.128" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="326" y="-84.6" font-family="Helvetica,sans-Serif" font-size="8.00">target (metapath_target)</text>
 </g>
-<!-- dj_hetmech_app_models_DegreeGroupedPermutation -->
-<g id="node4" class="node"><title>dj_hetmech_app_models_DegreeGroupedPermutation</title>
+<!-- dj_consearch_app_models_DegreeGroupedPermutation -->
+<g id="node4" class="node"><title>dj_consearch_app_models_DegreeGroupedPermutation</title>
 <polygon fill="palegoldenrod" stroke="none" points="374.5,-300 374.5,-421 594.5,-421 594.5,-300 374.5,-300"/>
 <polygon fill="#698b22" stroke="none" points="374.5,-403.5 374.5,-420.5 594.5,-420.5 594.5,-403.5 374.5,-403.5"/>
 <text text-anchor="start" x="414.5" y="-411.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -217,14 +217,14 @@
 <text text-anchor="start" x="478.5" y="-305.1" font-family="Helvetica " font-size="8.00">FloatField</text>
 <text text-anchor="start" x="514.5" y="-305.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
-<!-- dj_hetmech_app_models_DegreeGroupedPermutation&#45;&gt;dj_hetmech_app_models_Metapath -->
-<g id="edge4" class="edge"><title>dj_hetmech_app_models_DegreeGroupedPermutation&#45;&gt;dj_hetmech_app_models_Metapath</title>
+<!-- dj_consearch_app_models_DegreeGroupedPermutation&#45;&gt;dj_consearch_app_models_Metapath -->
+<g id="edge4" class="edge"><title>dj_consearch_app_models_DegreeGroupedPermutation&#45;&gt;dj_consearch_app_models_Metapath</title>
 <path fill="none" stroke="black" d="M411.67,-289.981C398.271,-277.191 384.276,-263.831 370.861,-251.026"/>
 <ellipse fill="black" stroke="black" cx="414.887" cy="-293.051" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="467" y="-271.6" font-family="Helvetica,sans-Serif" font-size="8.00">metapath (degreegroupedpermutation)</text>
 </g>
-<!-- dj_hetmech_app_models_PathCount -->
-<g id="node5" class="node"><title>dj_hetmech_app_models_PathCount</title>
+<!-- dj_consearch_app_models_PathCount -->
+<g id="node5" class="node"><title>dj_consearch_app_models_PathCount</title>
 <polygon fill="palegoldenrod" stroke="none" points="131,-474 131,-595 324,-595 324,-474 131,-474"/>
 <polygon fill="#698b22" stroke="none" points="131.5,-577.5 131.5,-594.5 324.5,-594.5 324.5,-577.5 131.5,-577.5"/>
 <text text-anchor="start" x="192.5" y="-585.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
@@ -278,26 +278,26 @@
 <text text-anchor="start" x="208.5" y="-479.1" font-family="Helvetica " font-size="8.00">FloatField</text>
 <text text-anchor="start" x="244.5" y="-479.1" font-family="Helvetica,sans-Serif" font-size="8.00"> &#160;&#160;&#160;</text>
 </g>
-<!-- dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Node -->
-<g id="edge6" class="edge"><title>dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Node</title>
+<!-- dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Node -->
+<g id="edge6" class="edge"><title>dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Node</title>
 <path fill="none" stroke="black" d="M116.206,-486.199C103.986,-476.62 93.2022,-465.301 85.5,-452 79.652,-441.901 78.5215,-430.202 79.8936,-418.638"/>
 <ellipse fill="black" stroke="black" cx="119.511" cy="-488.662" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="124" y="-445.6" font-family="Helvetica,sans-Serif" font-size="8.00">source (path_source)</text>
 </g>
-<!-- dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Node -->
-<g id="edge7" class="edge"><title>dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Node</title>
+<!-- dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Node -->
+<g id="edge7" class="edge"><title>dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Node</title>
 <path fill="none" stroke="black" d="M176.926,-462.916C172.061,-456.177 167.193,-449.454 162.5,-443 156.817,-435.184 150.806,-426.965 144.871,-418.876"/>
 <ellipse fill="black" stroke="black" cx="179.444" cy="-466.407" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="204" y="-445.6" font-family="Helvetica,sans-Serif" font-size="8.00">target (path_target)</text>
 </g>
-<!-- dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Metapath -->
-<g id="edge5" class="edge"><title>dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_Metapath</title>
+<!-- dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Metapath -->
+<g id="edge5" class="edge"><title>dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_Metapath</title>
 <path fill="none" stroke="black" d="M241.79,-461.541C254.01,-400.003 271.491,-311.975 283.598,-251.006"/>
 <ellipse fill="black" stroke="black" cx="240.956" cy="-465.742" rx="4.00001" ry="4.00001"/>
 <text text-anchor="middle" x="313.5" y="-358.6" font-family="Helvetica,sans-Serif" font-size="8.00">metapath (pathcount)</text>
 </g>
-<!-- dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_DegreeGroupedPermutation -->
-<g id="edge8" class="edge"><title>dj_hetmech_app_models_PathCount&#45;&gt;dj_hetmech_app_models_DegreeGroupedPermutation</title>
+<!-- dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_DegreeGroupedPermutation -->
+<g id="edge8" class="edge"><title>dj_consearch_app_models_PathCount&#45;&gt;dj_consearch_app_models_DegreeGroupedPermutation</title>
 <path fill="none" stroke="black" d="M329.173,-465.454C349.057,-452.147 369.838,-438.239 389.494,-425.084"/>
 <ellipse fill="black" stroke="black" cx="325.791" cy="-467.717" rx="4.00002" ry="4.00002"/>
 <text text-anchor="middle" x="385.5" y="-445.6" font-family="Helvetica,sans-Serif" font-size="8.00">dgp (pathcount)</text>

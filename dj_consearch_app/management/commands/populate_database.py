@@ -20,8 +20,8 @@ import pandas
 from django.core.management.base import BaseCommand
 from hetmatpy.hetmat.archive import load_archive
 
-import dj_hetmech_app.models as hetmech_models
-from dj_hetmech_app.utils import (
+import dj_consearch_app.models as consearch_models
+from dj_consearch_app.utils import (
     get_neo4j_driver,
     timed,
 )
@@ -69,14 +69,14 @@ class Command(BaseCommand):
         """
         Return the Django metanode object.
         """
-        return hetmech_models.Metanode.objects.get(identifier=identifier)
+        return consearch_models.Metanode.objects.get(identifier=identifier)
 
     @functools.lru_cache(maxsize=10_000)
     def _get_node(self, metanode, identifier):
         """
         Return the Django node object.
         """
-        return hetmech_models.Node.objects.get(
+        return consearch_models.Node.objects.get(
             metanode=self._get_metanode(metanode),
             identifier=str(identifier),
         )
@@ -86,14 +86,14 @@ class Command(BaseCommand):
         """
         Return the Django metapath object.
         """
-        return hetmech_models.Metapath.objects.get(abbreviation=abbreviation)
+        return consearch_models.Metapath.objects.get(abbreviation=abbreviation)
 
     @functools.lru_cache(maxsize=10_000)
     def _get_dgp(self, metapath, source_degree, target_degree):
         """
         Return the Django metapath object.
         """
-        return hetmech_models.DegreeGroupedPermutation.objects.get(
+        return consearch_models.DegreeGroupedPermutation.objects.get(
             metapath=self._get_metapath(str(metapath)),
             source_degree=source_degree,
             target_degree=target_degree,
@@ -107,7 +107,7 @@ class Command(BaseCommand):
         )
         metanode_df = pandas.read_csv(path, sep='\t').sort_values('metanode')
         for row in metanode_df.itertuples():
-            hetmech_models.Metanode.objects.create(
+            consearch_models.Metanode.objects.create(
                 identifier=row.metanode,
                 abbreviation=row.abbreviation,
                 n_nodes=row.nodes,
@@ -170,7 +170,7 @@ class Command(BaseCommand):
         objs = list()
         for row in metapath_df.itertuples():
             metapath = row.metapath_obj
-            objs.append(hetmech_models.Metapath(
+            objs.append(consearch_models.Metapath(
                 abbreviation=metapath.abbrev,
                 name=metapath.get_unicode_str(),
                 source=self._get_metanode(metapath.source().identifier),
@@ -183,11 +183,11 @@ class Command(BaseCommand):
                 n_similar=row.n_similar,
                 p_threshold=row.p_threshold,
             ))
-        hetmech_models.Metapath.objects.bulk_create(objs)
+        consearch_models.Metapath.objects.bulk_create(objs)
 
     def _populate_node_table(self):
         """
-        Pulls nodes from neo4j as per https://github.com/greenelab/hetmech-backend/issues/36
+        Pulls nodes from neo4j as per https://github.com/greenelab/connectivity-search-backend/issues/36
         """
         metagraph = self._hetionet_metagraph
         query = '''
@@ -207,7 +207,7 @@ class Command(BaseCommand):
                 data = result['data']
                 identifier = data.pop('identifier')
                 metanode = metagraph.get_metanode(result['node_label'])
-                objs.append(hetmech_models.Node(
+                objs.append(consearch_models.Node(
                     id=result['neo4j_id'],
                     metanode=self._get_metanode(metanode.identifier),
                     identifier=str(identifier),
@@ -216,9 +216,9 @@ class Command(BaseCommand):
                     data=data,
                 ))
                 if len(objs) >= self.options['batch_size']:
-                    hetmech_models.Node.objects.bulk_create(objs)
+                    consearch_models.Node.objects.bulk_create(objs)
                     objs = list()
-        hetmech_models.Node.objects.bulk_create(objs)
+        consearch_models.Node.objects.bulk_create(objs)
 
     def _populate_degree_grouped_permutation_table(self, length):
         """
@@ -238,7 +238,7 @@ class Command(BaseCommand):
                 dgp_df = hetmatpy.pipeline.add_gamma_hurdle_to_dgp_df(dgp_df)
                 objs = list()
                 for row in dgp_df.itertuples():
-                    objs.append(hetmech_models.DegreeGroupedPermutation(
+                    objs.append(consearch_models.DegreeGroupedPermutation(
                         metapath=metapath_key,
                         source_degree=row.source_degree,
                         target_degree=row.target_degree,
@@ -248,9 +248,9 @@ class Command(BaseCommand):
                         nonzero_sd=row.sd_nz,
                     ))
                     if len(objs) >= self.options['batch_size']:
-                        hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
+                        consearch_models.DegreeGroupedPermutation.objects.bulk_create(objs)
                         objs = list()
-                hetmech_models.DegreeGroupedPermutation.objects.bulk_create(objs)
+                consearch_models.DegreeGroupedPermutation.objects.bulk_create(objs)
 
     def _download_path_counts(self, length):
         """
@@ -278,7 +278,7 @@ class Command(BaseCommand):
         """
         hetmat = self._hetionet_hetmat
         metapaths = (
-            hetmech_models
+            consearch_models
             .DegreeGroupedPermutation
             .objects
             .values_list('metapath', flat=True)
@@ -297,7 +297,7 @@ class Command(BaseCommand):
             )
             objs = list()
             for row in rows:
-                objs.append(hetmech_models.PathCount(
+                objs.append(consearch_models.PathCount(
                     metapath=metapath_record,
                     source=self._get_node(metapath.source().identifier, row['source_id']),
                     target=self._get_node(metapath.target().identifier, row['target_id']),
@@ -307,9 +307,9 @@ class Command(BaseCommand):
                     p_value=row['p_value'],
                 ))
                 if len(objs) >= self.options['batch_size']:
-                    hetmech_models.PathCount.objects.bulk_create(objs)
+                    consearch_models.PathCount.objects.bulk_create(objs)
                     objs = list()
-            hetmech_models.PathCount.objects.bulk_create(objs)
+            consearch_models.PathCount.objects.bulk_create(objs)
 
     def add_arguments(self, parser):
         parser.add_argument(

@@ -1,6 +1,6 @@
-# hetmech backend
+# connectivity search backend
 
-[![CircleCI](https://circleci.com/gh/greenelab/hetmech-backend.svg?style=svg)](https://circleci.com/gh/greenelab/hetmech-backend)
+[![CircleCI](https://circleci.com/gh/greenelab/connectivity-search-backend.svg?style=svg)](https://circleci.com/gh/greenelab/connectivity-search-backend)
 
 
 ## Environment
@@ -12,12 +12,12 @@ Install the environment with:
 conda env create --file=environment.yml
 ```
 
-Then use `conda activate hetmech-backend` and `conda deactivate` to activate or deactivate the environment.
+Then use `conda activate consearch-backend` and `conda deactivate` to activate or deactivate the environment.
 
 ## Secrets
 
-Users must supply `dj_hetmech/secrets.yml` with the database connection information.
-See [`dj_hetmech/secrets-template.yml`](dj_hetmech/secrets-template.yml) for what fields should be defined.
+Users must supply `dj_consearch/secrets.yml` with the database connection information.
+See [`dj_consearch/secrets-template.yml`](dj_consearch/secrets-template.yml) for what fields should be defined.
 These secrets will determine whether django connects to a local database or a remote database.
 
 ## Notebooks
@@ -48,9 +48,9 @@ To erect a new database locally for development, run:
 ```shell
 # https://docs.docker.com/samples/library/postgres/
 docker run \
-  --name dj_hetmech_db \
-  --env POSTGRES_DB=dj_hetmech \
-  --env POSTGRES_USER=dj_hetmech \
+  --name dj_consearch_db \
+  --env POSTGRES_DB=dj_consearch \
+  --env POSTGRES_USER=dj_consearch \
   --env POSTGRES_PASSWORD=not_secure \
   --volume "$(pwd)"/database:/var/lib/postgresql/data \
   --publish 5432:5432 \

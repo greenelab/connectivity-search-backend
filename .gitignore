@@ -2,13 +2,13 @@
 secrets.yml
 
 # Database files
-dj_hetmech_app/migrations
-hetmech-pg_dump.sql.gz
+dj_consearch_app/migrations
+consearch-pg_dump.sql.gz
 db.sqlite3
 /database
 
 # Manage command downloads
-/dj_hetmech_app/management/commands/downloads
+/dj_consearch_app/management/commands/downloads
 
 # Python
 __pycache__

@@ -3,16 +3,16 @@ import json
 import hetnetpy.readwrite
 from django.core.management.base import BaseCommand
 
-from dj_hetmech_app.utils.paths import (
+from dj_consearch_app.utils.paths import (
     get_neo4j_node_info,
     get_neo4j_rel_info,
     get_paths,
 )
-from dj_hetmech_app.models import Node
+from dj_consearch_app.models import Node
 
 class Command(BaseCommand):
 
-    help = 'Call dj_hetmech_app.utils.paths.get_paths for prototyping purposes.'
+    help = 'Call dj_consearch_app.utils.paths.get_paths for prototyping purposes.'
 
     def handle(self, *args, **options):
         source_node = Node.objects.get(metanode='Compound', identifier='DB01156')  # Bupropion

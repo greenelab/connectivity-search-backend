@@ -16,7 +16,7 @@ from .serializers import NodeSerializer, MetapathSerializer, PathCountDgpSeriali
 def api_root(request):
     """
     Hetionet connectivity search API. This API is used to power <https://search.het.io>.
-    The codebase for this API is available at <https://github.com/greenelab/hetmech-backend>.
+    The codebase for this API is available at <https://github.com/greenelab/connectivity-search-backend>.
     Please use GitHub Issues for any questions or feedback.
     """
     return Response([
@@ -59,7 +59,7 @@ class NodeViewSet(ReadOnlyModelViewSet):
             search_against = int(search_against)
         except ValueError:
             return context
-        from dj_hetmech_app.utils.paths import get_metapath_counts_for_node
+        from dj_consearch_app.utils.paths import get_metapath_counts_for_node
         context['metapath_counts'] = get_metapath_counts_for_node(search_against)
         return context
 

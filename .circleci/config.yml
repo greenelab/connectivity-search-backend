@@ -10,7 +10,7 @@ jobs:
         environment:
           POSTGRES_USER: circleci
 
-    working_directory: ~/hetmech-backend
+    working_directory: ~/connectivity-search-backend
 
     steps:
       - checkout
@@ -23,7 +23,7 @@ jobs:
           command: |
             apt install postgresql-client --yes
             createdb --host=localhost --username=circleci circleci_test
-            cp .circleci/ci_secrets.yml dj_hetmech/secrets.yml
+            cp .circleci/ci_secrets.yml dj_consearch/secrets.yml
       - run:
           name: Install miniconda
           working_directory: ~/
@@ -34,13 +34,13 @@ jobs:
             source $HOME/miniconda/etc/profile.d/conda.sh
             # gcc is required for "pip install git+https://..."
             apt install gcc --yes
-            conda env create --quiet --file ~/hetmech-backend/environment.yml
+            conda env create --quiet --file ~/connectivity-search/environment.yml
             echo "source $HOME/miniconda/etc/profile.d/conda.sh" >> $BASH_ENV
-            echo "conda activate hetmech-backend" >> $BASH_ENV
+            echo "conda activate consearch-backend" >> $BASH_ENV
       - run:
           name: Backend tests
           command: |
-            python manage.py makemigrations dj_hetmech_app
+            python manage.py makemigrations dj_consearch_app
             python manage.py migrate
             python manage.py test
 
@@ -54,7 +54,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            ssh $SSH_USER@$SSH_HOST "bash ~/hetmech-backend/.circleci/deploy.sh"
+            ssh $SSH_USER@$SSH_HOST "bash ~/connectivity-search-backend/.circleci/deploy.sh"
 
 workflows:
   version: 2

@@ -39,7 +39,7 @@ class DgpSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         data = super().to_representation(instance)
-        # Replace nan with None. https://github.com/greenelab/hetmech-backend/issues/63
+        # Replace nan with None. https://github.com/greenelab/connectivity-search-backend/issues/63
         from pandas import isna
         for key in 'nonzero_mean', 'nonzero_sd':
             if isna(data[key]):
@@ -63,7 +63,7 @@ class MetapathSerializer(serializers.ModelSerializer):
         data = super().to_representation(instance)
         data['id'] = instance.pk
         data['reversed'] = vars(instance).get('reversed')
-        from dj_hetmech_app.utils import metapath_from_abbrev
+        from dj_consearch_app.utils import metapath_from_abbrev
         oriented_metapath = metapath_from_abbrev(data['abbreviation'])
         if data['reversed']:
             oriented_metapath = oriented_metapath.inverse
