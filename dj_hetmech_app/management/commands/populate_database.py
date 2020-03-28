@@ -195,7 +195,7 @@ class Command(BaseCommand):
         RETURN
           id(node) AS neo4j_id,
           head(labels(node)) AS node_label,
-          properties(node) AS data
+          properties(node) AS node_properties
         ORDER BY neo4j_id
         '''
         driver = get_neo4j_driver()
@@ -204,16 +204,16 @@ class Command(BaseCommand):
             results = [dict(result) for result in results]
             objs = list()
             for result in results:
-                data = result['data']
-                identifier = data.pop('identifier')
+                properties = result['node_properties']
+                identifier = properties.pop('identifier')
                 metanode = metagraph.get_metanode(result['node_label'])
                 objs.append(hetmech_models.Node(
                     id=result['neo4j_id'],
                     metanode=self._get_metanode(metanode.identifier),
                     identifier=str(identifier),
                     identifier_type=identifier.__class__.__name__,
-                    name=data.pop('name'),
-                    data=data,
+                    name=properties.pop('name'),
+                    properties=properties,
                 ))
                 if len(objs) >= self.options['batch_size']:
                     hetmech_models.Node.objects.bulk_create(objs)
