@@ -2,7 +2,10 @@
 Database schema.
 
 See https://django-extensions.readthedocs.io/en/latest/graph_models.html for
-exporting a schema visualization. Must install django-extensions and pygraphviz / pydotplus,
+exporting a schema visualization. See graph_models source code for usage at
+https://github.com/django-extensions/django-extensions/blob/a7e86ec0a8708b5e0555f4a52f9be250a55c2012/django_extensions/management/commands/graph_models.py#L47
+
+Must install django-extensions and pygraphviz / pydotplus,
 then run:
 
 ```
