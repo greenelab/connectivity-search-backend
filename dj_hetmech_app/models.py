@@ -8,9 +8,13 @@ https://github.com/django-extensions/django-extensions/blob/a7e86ec0a8708b5e0555
 Must install django-extensions and pygraphviz / pydotplus,
 then run:
 
-```
-python manage.py graph_models --pydot --disable-sort-fields --theme=original --output=media/models-schema.svg dj_hetmech_app
-python manage.py graph_models --pydot --disable-sort-fields --theme=original --output=media/models-schema.png dj_hetmech_app
+```shell
+# SVG doesn't handle bold letters properly, so use PDF for vectors
+python manage.py graph_models \
+  --pydot --disable-sort-fields --theme=original \
+  --output=media/models-schema.pdf dj_hetmech_app
+# Derive PNG from PDF rather than --output=media/models-schema.png for higher resolution
+pdftoppm -png -r 300 media/models-schema.pdf >| media/models-schema.png
 ```
 
 References:
