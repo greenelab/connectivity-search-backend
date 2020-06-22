@@ -9,8 +9,8 @@ Must install django-extensions and pygraphviz / pydotplus,
 then run:
 
 ```
-python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.svg dj_hetmech_app
-python manage.py graph_models --pydot --disable-sort-fields --output=media/models-schema.png dj_hetmech_app
+python manage.py graph_models --pydot --disable-sort-fields --theme=original --output=media/models-schema.svg dj_hetmech_app
+python manage.py graph_models --pydot --disable-sort-fields --theme=original --output=media/models-schema.png dj_hetmech_app
 ```
 
 References:

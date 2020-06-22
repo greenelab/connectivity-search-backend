@@ -2,26 +2,26 @@ name: hetmech-backend
 channels:
   - conda-forge
 dependencies:
-  - django-cors-headers=2.5.0
-  - django-extensions=2.1.6
-  - django-filter=2.1.0
-  - django=2.2.1
-  - djangorestframework=3.9.3
-  - graphviz=2.40.1
-  - gunicorn=19.9.0
-  - ipykernel=5.1.0
-  - neo4j-python-driver=1.7.2
-  - numpy=1.16.3
-  - pandas=0.24.2
-  - pip=19.1
-  - psycopg2=2.8.2
+  - django-cors-headers=3.2.1
+  - django-extensions=2.2.9
+  - django-filter=2.3.0
+  - django=3.0.7
+  - djangorestframework=3.11.0
+  - graphviz=2.42.3
+  - gunicorn=20.0.4
+  - ipykernel=5.3.0
+  - markdown=3.2.2
+  - neo4j-python-driver=4.0.0
+  - numpy=1.18.5
+  - pandas=1.0.5
+  - pip=20.1.1
+  - psycopg2=2.8.5
   - pydot=1.4.1
-  - python=3.7.3
-  - pyyaml=5.1
-  - requests=2.21.0
-  - scipy=1.2.1
-  - sqlparse=0.3.0
+  - python=3.8.3
+  - pyyaml=5.3.1
+  - requests=2.24.0
+  - scipy=1.4.1
+  - sqlparse=0.3.1
   - pip:
-    - git+https://github.com/hetio/hetnetpy@4edea3e4cc401377a03bf4e62ebf38cabce16f5a
-    - git+https://github.com/hetio/hetmatpy@2589aa32abf73d70451c101d7bd9df425b357a7b
-    - markdown==3.1
+    - git+https://github.com/hetio/hetnetpy@aa16e6a7092c039a6b175a73a35c006e53acee20
+    - git+https://github.com/hetio/hetmatpy@bc36aa9859c43a1a5fb22808cd6eb952ef9d497c
