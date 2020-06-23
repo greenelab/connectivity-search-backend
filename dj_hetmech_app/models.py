@@ -1,25 +1,35 @@
 """
 Database schema.
 
-See https://django-extensions.readthedocs.io/en/latest/graph_models.html for
-exporting a schema visualization. See graph_models source code for usage at
+References:
+
+- https://docs.djangoproject.com/en/2.1/ref/models/fields/
+- https://docs.djangoproject.com/en/2.1/ref/models/options/
+
+## Export schematic
+
+Uses the [graph_models](https://django-extensions.readthedocs.io/en/latest/graph_models.html) management command
+from django-extensions.
+See graph_models source code for usage at
 https://github.com/django-extensions/django-extensions/blob/a7e86ec0a8708b5e0555f4a52f9be250a55c2012/django_extensions/management/commands/graph_models.py#L47
 
-Must install django-extensions and pygraphviz / pydotplus,
-then run:
+Must install django-extensions and graphviz, then run:
 
 ```shell
-# SVG doesn't handle bold letters properly, so use PDF for vectors
+# Export first to .dot for more control over graphviz command
 python manage.py graph_models \
-  --pydot --disable-sort-fields --theme=original \
-  --output=media/models-schema.pdf dj_hetmech_app
-# Derive PNG from PDF rather than --output=media/models-schema.png for higher resolution
-pdftoppm -png -r 300 media/models-schema.pdf >| media/models-schema.png
-```
+  --dot --disable-sort-fields --theme=original \
+  --output=media/models-schema.dot dj_hetmech_app
 
-References:
-  https://docs.djangoproject.com/en/2.1/ref/models/fields/
-  https://docs.djangoproject.com/en/2.1/ref/models/options/
+# SVG doesn't handle bold letters properly, so use PDF for vectors
+# https://www.graphviz.org/doc/info/command.html
+circo -Tpdf -Gmargin=0 \
+  media/models-schema.dot -o media/models-schema.pdf
+
+# Export to high-resolution PNG
+circo -Tpng -Gdpi=300 \
+  media/models-schema.dot -o media/models-schema.png
+```
 """
 
 from django.contrib.postgres.fields import JSONField
