@@ -1,7 +1,7 @@
 digraph model_graph {
   // Dotfile by Django-Extensions graph_models
-  // Created: 2020-06-23 13:35
-  // Cli Options: --dot --disable-sort-fields --theme=original --output=media/models-schema.dot dj_hetmech_app
+  // Created: 2020-06-23 14:37
+  // Cli Options: --dot --disable-sort-fields --theme=original --arrow-shape=inv --output=media/models-schema.dot dj_hetmech_app
 
   fontname = "Helvetica"
   fontsize = 8
@@ -365,28 +365,28 @@ digraph model_graph {
   // Relations
 
   dj_hetmech_app_models_Node -> dj_hetmech_app_models_Metanode
-  [label="metanode (node)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="metanode (node)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_Metapath -> dj_hetmech_app_models_Metanode
-  [label="source (metapath_source)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="source (metapath_source)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_Metapath -> dj_hetmech_app_models_Metanode
-  [label="target (metapath_target)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="target (metapath_target)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_DegreeGroupedPermutation -> dj_hetmech_app_models_Metapath
-  [label="metapath (degreegroupedpermutation)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="metapath (degreegroupedpermutation)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_PathCount -> dj_hetmech_app_models_Metapath
-  [label="metapath (pathcount)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="metapath (pathcount)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_PathCount -> dj_hetmech_app_models_Node
-  [label="source (path_source)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="source (path_source)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_PathCount -> dj_hetmech_app_models_Node
-  [label="target (path_target)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="target (path_target)"] [arrowhead=none, arrowtail=inv, dir=both];
 
   dj_hetmech_app_models_PathCount -> dj_hetmech_app_models_DegreeGroupedPermutation
-  [label="dgp (pathcount)"] [arrowhead=none, arrowtail=dot, dir=both];
+  [label="dgp (pathcount)"] [arrowhead=none, arrowtail=inv, dir=both];
 
 
 }

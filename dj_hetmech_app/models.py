@@ -8,27 +8,10 @@ References:
 
 ## Export schematic
 
-Uses the [graph_models](https://django-extensions.readthedocs.io/en/latest/graph_models.html) management command
-from django-extensions.
-See graph_models source code for usage at
-https://github.com/django-extensions/django-extensions/blob/a7e86ec0a8708b5e0555f4a52f9be250a55c2012/django_extensions/management/commands/graph_models.py#L47
-
-Must install django-extensions and graphviz, then run:
+Run the following script in the environment to generate figures in model-schema:
 
 ```shell
-# Export first to .dot for more control over graphviz command
-python manage.py graph_models \
-  --dot --disable-sort-fields --theme=original \
-  --output=media/models-schema.dot dj_hetmech_app
-
-# SVG doesn't handle bold letters properly, so use PDF for vectors
-# https://www.graphviz.org/doc/info/command.html
-circo -Tpdf -Gmargin=0 \
-  media/models-schema.dot -o media/models-schema.pdf
-
-# Export to high-resolution PNG
-circo -Tpng -Gdpi=300 \
-  media/models-schema.dot -o media/models-schema.png
+bash media/models-schema.sh
 ```
 """
 
