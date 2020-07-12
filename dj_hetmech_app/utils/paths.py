@@ -118,7 +118,9 @@ def get_paths(metapath, source_id, target_id, limit=None):
     query = hetnetpy.neo4j.construct_pdp_query(
         metapath, property='identifier', path_style='id_lists', aggregate_columns=True)
     if limit is not None:
-        query += f'\nLIMIT {limit}'
+        assert isinstance(limit, int) and limit >= 0
+        # when limit is 0, we still need to return at least 1 row to sniff path_count and raw_dwpc
+        query += f'\nLIMIT {max(1, limit)}'
     driver = get_neo4j_driver()
     neo4j_params = {
         'source': source_identifier,
@@ -143,7 +145,8 @@ def get_paths(metapath, source_id, target_id, limit=None):
     neo4j_node_ids = set()
     neo4j_rel_ids = set()
     paths_obj = []
-    for row_ in results:
+    for row_ in results[:limit]:
+        # `results[:limit]` deals with special case when limit=0
         row = {
             'metapath': metapath.abbrev,
         }
