@@ -58,3 +58,26 @@ docker run \
   --detach \
   postgres:11.1
 ```
+
+### Populating the database
+
+To populate the database from scratch, use the populate_database management command ([source](dj_hetmech_app/management/commands/populate_database.py)).
+Here is an example workflow:
+
+```shell
+# migrate database to the current Django models
+python manage.py makemigrations
+python manage.py migrate
+# view the populate_database usage docs
+python manage.py populate_database --help
+# wipe the existing database (populate_database assumes empty tables)
+python manage.py flush --no-input
+# populate the database (will take a long time)
+python manage.py populate_database --max-metapath-length=3  --reduced-metapaths --batch-size=12000
+# output database information and table summaries
+python manage.py database_info
+```
+
+Another option to load the database is to load it from `hetmech-pg_dump.sql.gz`,
+which will save time if you are interested in loading the full database (i.e. without `--reduced-metapaths`).
+This 5.5GB file is not currently hosted publicly, but we would like to archive it publicly soon.
