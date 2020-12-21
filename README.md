@@ -1,6 +1,6 @@
 # connectivity search backend
 
-[![CircleCI](https://circleci.com/gh/greenelab/connectivity-search-backend.svg?style=svg)](https://circleci.com/gh/greenelab/connectivity-search-backend)
+[![CircleCI](https://img.shields.io/circleci/build/github/greenelab/connectivity-search-backend/main?label=CI%20Build&logo=circleci&style=for-the-badge)](https://circleci.com/gh/greenelab/connectivity-search-backend)
 
 This django application powers the API available at <https://search-api.het.io/>.
 
@@ -43,6 +43,15 @@ This exposes the API at <http://localhost:8000/v1/>.
 
 This project uses a PostgreSQL database.
 The deployed version of this application uses a remote database.
+Public read-only access is available with the following configuration:
+
+```yaml
+name: dj_hetmech
+user: read_only_user
+password: tm8ut9uzqx7628swwkb9
+host: search-db.het.io
+port: 5432
+```
 
 To erect a new database locally for development, run:
 
@@ -78,6 +87,6 @@ python manage.py populate_database --max-metapath-length=3  --reduced-metapaths 
 python manage.py database_info
 ```
 
-Another option to load the database is to load it from `hetmech-pg_dump.sql.gz`,
+Another option to load the database is to import it from the `connectivity-search-pg_dump.sql.gz` database dump,
 which will save time if you are interested in loading the full database (i.e. without `--reduced-metapaths`).
-This 5.5GB file is not currently hosted publicly, but we would like to archive it publicly soon.
+This 5 GB file is [available on Zenodo](https://doi.org/10.5281/zenodo.3978766 "Node connectivity measurements for Hetionet v1.0 metapaths. Zenodod Version v1.1").
