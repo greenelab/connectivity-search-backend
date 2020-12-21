@@ -1,7 +1,7 @@
 #!/bin/bash
 
 cd ~/hetmech-backend
-git checkout master
+git checkout main
 
 ENV_FILE="environment.yml"
 git remote update
