@@ -35,6 +35,8 @@ class NodeViewSet(ReadOnlyModelViewSet):
     Use `search=<str>` to search `identifier` for prefix match, and `name` for substring and trigram searches (similarity defaults to 0.3);
     Use `search=<str>&similarity=<value>` to set your own `similarity` value in the range of (0, 1.0].
     Set `similarity=1.0` to exclude trigram search.
+    Filter for select metanodes using `metanodes=<str>`, where `<str>` is a comma-separated list of metanode abbreviations.
+    For example, `metanodes=C,D` will restrict to Compound and Disease nodes.
 
     Set `other-node=<node_id>` to return non-null values for `metapath_count`.
     `metapath_counts` measures the number of metapaths stored in the database between the result node and other node.
