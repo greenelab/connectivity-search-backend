@@ -12,6 +12,7 @@ import functools
 import pathlib
 import zipfile
 from urllib.request import urlretrieve
+from typing import NamedTuple, Iterable, Tuple
 
 import hetnetpy.readwrite
 import hetmatpy.hetmat
@@ -113,6 +114,15 @@ class Command(BaseCommand):
                 n_nodes=row.nodes,
             )
 
+    @staticmethod
+    def _metapath_has_endpoints(metapath, include: Iterable[Tuple[str, str]] = {('Compound', 'Disease')}):
+        """return whether the endpoints of a metapath are in include (in either orientation)."""
+        include = set(include)
+        for pair in list(include):
+            include.add((pair[1], pair[0]))
+        endpoints = metapath.source().identifier, metapath.target().identifier
+        return endpoints in include
+
     @functools.lru_cache(maxsize=20_000)
     def _keep_metapath(self, metapath):
         """
@@ -123,25 +133,24 @@ class Command(BaseCommand):
         if len(metapath) > self.options['max_metapath_length']:
             return False
         if self.options['reduced_metapaths']:
-            keep = {
-                ('Compound', 'Disease'),
-            }
-            for pair in list(keep):
-                keep.add((pair[1], pair[0]))
-            endpoints = metapath.source().identifier, metapath.target().identifier
-            if endpoints not in keep:
+            if not self._metapath_has_endpoints(metapath, include={('Compound', 'Disease')}):
                 return False
             metaedge_GcG = metagraph.get_metaedge('GcG')
             if {metaedge_GcG, metaedge_GcG.inverse} & set(metapath):
                 return False
         return True
 
-    def _get_metapath_p_threshold(self, row):
+    def _get_metapath_p_threshold(self, row: NamedTuple) -> float:
         """
         Return p-value threshold for a metapath
         """
+        # length 1 metapaths
         if row.length == 1:
             return 1.0
+        # Compound-Disease metapaths
+        if self._metapath_has_endpoints(row.metapath_obj, include={('Compound', 'Disease')}):
+            return 1.0
+        # general case
         p_threshold = 5 * row.n_pairs ** -0.3 / row.n_similar
         return p_threshold
 
