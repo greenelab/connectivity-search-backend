@@ -3,10 +3,10 @@ jobs:
   tests:
     docker:
       # Primary docker container where the tests will be run
-      - image: ubuntu:18.04
+      - image: ubuntu:20.04
 
       # Secondary docker container for database service
-      - image: postgres:10.6
+      - image: postgres:12.4
         environment:
           POSTGRES_USER: circleci
 
