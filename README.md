@@ -46,7 +46,7 @@ The deployed version of this application uses a remote database.
 Public read-only access is available with the following configuration:
 
 ```yaml
-name: dj_hetmech
+name: connectivity_db
 user: read_only_user
 password: tm8ut9uzqx7628swwkb9
 host: search-db.het.io
