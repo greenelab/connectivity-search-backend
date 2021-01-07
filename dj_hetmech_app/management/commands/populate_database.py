@@ -9,15 +9,17 @@ python manage.py database_info
 """
 
 import functools
+import hashlib
 import pathlib
 import zipfile
 from urllib.request import urlretrieve
-from typing import NamedTuple, Iterable, Tuple
+from typing import Dict, NamedTuple, Iterable, Tuple
 
 import hetnetpy.readwrite
 import hetmatpy.hetmat
 import hetmatpy.pipeline
 import pandas
+import requests
 from django.core.management.base import BaseCommand
 from hetmatpy.hetmat.archive import load_archive
 
@@ -351,21 +353,55 @@ class Command(BaseCommand):
             timed(self._populate_degree_grouped_permutation_table)(length)
         timed(self._populate_path_count_table)()
 
+    @staticmethod
+    @functools.lru_cache()
+    def zenodo_checksums(record_id: str) -> Dict[str, str]:
+        """
+        Return a dictionary of filename to md5 checksum for a zenodo record.
+        Values are like 'md5:81043d9c041c7a98364f398139a01edf'.
+        """
+        url = f"https://zenodo.org/api/records/{record_id}"
+        response = requests.get(url)
+        response.raise_for_status()
+        results = response.json()
+        return {info["key"]: info["checksum"] for info in results["files"]}
+
     def zenodo_download(self, record_id, filename):
         """
         Download a file from a Zenodo record and return the path to the
         download location. If a file already exists at the specified path,
-        do not re-download.
+        do not re-download. Even if file exists, verify its integrity via
+        its md5 checksum.
         Note this can fail with a ContentTooShortError on a poor connection
         https://github.com/greenelab/connectivity-search-backend/issues/77
         """
         record_id = str(record_id)
+        checksums = self.zenodo_checksums(record_id)
         path = self.download_dir.joinpath('zenodo', record_id, filename)
         if not path.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
             url = f'https://zenodo.org/record/{record_id}/files/{filename}'
             urlretrieve(url, path)
+        checksum = f"md5:{self.md5_hex_digest(path)}"
+        expected = checksums[filename]
+        if checksum != expected:
+            raise ValueError(
+                f"Expected checksum of {expected}, calculated {checksum}. "
+                f"Delete {filename} to re-download."
+            )
         return path
+
+    @staticmethod
+    def md5_hex_digest(path: pathlib.Path) -> str:
+        """
+        Get the md5 hex digest checksum of a file.
+        https://stackoverflow.com/a/59056837/4651668
+        """
+        with path.open(mode="rb") as read_file:
+            file_hash = hashlib.md5()
+            while chunk := read_file.read(8192):
+                file_hash.update(chunk)
+        return file_hash.hexdigest()
 
     def github_download(self, repo, commit, path):
         """
