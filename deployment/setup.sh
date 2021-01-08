@@ -23,7 +23,7 @@ sudo apt update
 sudo apt install nginx --yes
 
 # Install SSL certificates issued by Let's Encrypt
-sudo apt install -y certbot python3-certbot-nginx --yes
+sudo apt install certbot python3-certbot-nginx --yes
 
 # Install SSL certificate
 EMAIL="team@greenelab.com"
