@@ -58,14 +58,14 @@ To erect a new database locally for development, run:
 ```shell
 # https://docs.docker.com/samples/library/postgres/
 docker run \
-  --name dj_hetmech_db \
-  --env POSTGRES_DB=dj_hetmech \
+  --name connectivity_db \
+  --env POSTGRES_DB=connectivity_db \
   --env POSTGRES_USER=dj_hetmech \
   --env POSTGRES_PASSWORD=not_secure \
   --volume "$(pwd)"/database:/var/lib/postgresql/data \
   --publish 5432:5432 \
   --detach \
-  postgres:11.1
+  postgres:12.4
 ```
 
 ### Populating the database

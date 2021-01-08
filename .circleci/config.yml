@@ -9,7 +9,7 @@ jobs:
       - image: postgres:12.4
         environment:
           POSTGRES_USER: circleci
-          POSTGRES_PASSWORD: password
+          POSTGRES_PASSWORD: not_secure
 
     working_directory: ~/connectivity-search-backend
 
