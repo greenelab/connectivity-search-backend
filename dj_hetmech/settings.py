@@ -26,10 +26,10 @@ with open(path) as read_file:
 # See https://docs.djangoproject.com/en/2.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'secret_not_yet_set'
+SECRET_KEY = secrets.get('SECRET_KEY', 'secret_not_yet_set')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = secrets.get('DEBUG', True)
 
 ALLOWED_HOSTS = ['localhost', 'search-api.het.io', ]
 
