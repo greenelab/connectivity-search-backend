@@ -3,12 +3,13 @@ jobs:
   tests:
     docker:
       # Primary docker container where the tests will be run
-      - image: ubuntu:18.04
+      - image: ubuntu:20.04
 
       # Secondary docker container for database service
-      - image: postgres:10.6
+      - image: postgres:12.4
         environment:
           POSTGRES_USER: circleci
+          POSTGRES_PASSWORD: not_secure
 
     working_directory: ~/connectivity-search-backend
 
@@ -54,7 +55,7 @@ jobs:
       - run:
           name: Deploy Over SSH
           command: |
-            ssh $SSH_USER@$SSH_HOST "bash ~/hetmech-backend/.circleci/deploy.sh"
+            ssh $SSH_USER@$SSH_HOST "bash ~/connectivity-search-backend/.circleci/deploy.sh"
 
 workflows:
   version: 2

@@ -17,24 +17,27 @@ if ! [ -f "$DJ_SECRETS_FILE" ]; then
     exit 2
 fi
 
-# Update packages automatically using a daily cron job
-sudo apt update
-sudo apt purge unattended-upgrades --yes
-sudo rm -rf /var/log/unattended-upgrades/
-sudo cp upgrade-pkg /etc/cron.daily/
-sudo chmod 755 /etc/cron.daily/upgrade-pkg
 
-# Nginx config
+# Install Nginx
+sudo apt update
 sudo apt install nginx --yes
-# Install SSL certificates issued by Let's Encrypt
-sudo add-apt-repository ppa:certbot/certbot --yes
-sudo apt update
-sudo apt install certbot python-certbot-nginx --yes
-sudo certbot --nginx certonly
 
+# Install SSL certificates issued by Let's Encrypt
+sudo apt install certbot python3-certbot-nginx --yes
+
+# Install SSL certificate
+EMAIL="team@greenelab.com"
+DOMAIN_NAME="search-api.het.io"
+sudo certbot certonly \
+     --nginx \
+     --noninteractive --no-eff-email --agree-tos \
+     --email $EMAIL \
+     --domains ${DOMAIN_NAME}
+
+# Enable API server on Nginx
 sudo rm -f /etc/nginx/sites-enabled/default
-sudo cp hetmech-api.conf /etc/nginx/sites-available/
-sudo ln -s /etc/nginx/sites-available/hetmech-api.conf /etc/nginx/sites-enabled/
+sudo cp connectivity-search-api.conf /etc/nginx/sites-available/
+sudo ln -s /etc/nginx/sites-available/connectivity-search-api.conf /etc/nginx/sites-enabled/
 
 # Use supervisord to take care of Gunicorn daemon
 sudo apt install supervisor --yes
@@ -46,21 +49,21 @@ wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh --out
 bash ~/miniconda.sh -b -p ~/miniconda
 echo "source ~/miniconda/etc/profile.d/conda.sh" >> ~/.bashrc
 
-rm -rf ~/hetmech-backend
-git clone https://github.com/greenelab/connectivity-search-backend.git ~/hetmech-backend
+rm -rf ~/connectivity-search-backend
+cd; git clone https://github.com/greenelab/connectivity-search-backend.git
 source ~/miniconda/etc/profile.d/conda.sh
-conda env create --quiet --file ~/hetmech-backend/environment.yml
+conda env create --quiet --file ~/connectivity-search-backend/environment.yml
 conda activate hetmech-backend
 
-# Copy $DJ_SECRETS_FILE as ~/hetmech-backend/dj_hetmech/secrets.yml
-if ! [ -f ~/hetmech-backend/dj_hetmech/secrets.yml ]; then
-    cp $DJ_SECRETS_FILE ~/hetmech-backend/dj_hetmech/secrets.yml
+# Copy $DJ_SECRETS_FILE as ~/connectivity-search-backend/dj_hetmech/secrets.yml
+if ! [ -f ~/connectivity-search-backend/dj_hetmech/secrets.yml ]; then
+    cp $DJ_SECRETS_FILE ~/connectivity-search-backend/dj_hetmech/secrets.yml
 fi
 
 # Create and populate "static" directory (for API view in HTML format)
 mkdir -p ~/www/static/
 chmod 755 ~/www/ ~/www/static/
-cd ~/hetmech-backend
+cd ~/connectivity-search-backend
 python manage.py collectstatic --clear --no-input
 
 # Restart Gunicorn and Nginx
