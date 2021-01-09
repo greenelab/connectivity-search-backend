@@ -1,9 +1,9 @@
 """
 ```
 python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --run-syncdb
 python manage.py flush --no-input
-python manage.py populate_database --max-metapath-length=3  --reduced-metapaths --batch-size=12000
+python manage.py populate_database --max-metapath-length=3 --reduced-metapaths --batch-size=12000
 python manage.py database_info
 ```
 """
@@ -356,6 +356,8 @@ class Command(BaseCommand):
         Download a file from a Zenodo record and return the path to the
         download location. If a file already exists at the specified path,
         do not re-download.
+        Note this can fail with a ContentTooShortError on a poor connection
+        https://github.com/greenelab/connectivity-search-backend/issues/77
         """
         record_id = str(record_id)
         path = self.download_dir.joinpath('zenodo', record_id, filename)

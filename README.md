@@ -76,13 +76,13 @@ Here is an example workflow:
 ```shell
 # migrate database to the current Django models
 python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --run-syncdb
 # view the populate_database usage docs
 python manage.py populate_database --help
 # wipe the existing database (populate_database assumes empty tables)
 python manage.py flush --no-input
 # populate the database (will take a long time)
-python manage.py populate_database --max-metapath-length=3  --reduced-metapaths --batch-size=12000
+python manage.py populate_database --max-metapath-length=3 --reduced-metapaths --batch-size=12000
 # output database information and table summaries
 python manage.py database_info
 ```
