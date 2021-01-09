@@ -17,9 +17,9 @@ Then use `conda activate hetmech-backend` and `conda deactivate` to activate or 
 
 ## Secrets
 
-Users must supply `dj_hetmech/secrets.yml` with the database connection information.
+Users must supply `dj_hetmech/secrets.yml` with the database connection information and two optional parameters for Django settings.
 See [`dj_hetmech/secrets-template.yml`](dj_hetmech/secrets-template.yml) for what fields should be defined.
-These secrets will determine whether django connects to a local database or a remote database.
+These secrets will determine whether django connects to a local database or a remote database and other security settings in Django.
 
 ## Notebooks
 
