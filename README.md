@@ -76,17 +76,34 @@ Here is an example workflow:
 ```shell
 # migrate database to the current Django models
 python manage.py makemigrations
-python manage.py migrate
+python manage.py migrate --run-syncdb
 # view the populate_database usage docs
 python manage.py populate_database --help
 # wipe the existing database (populate_database assumes empty tables)
 python manage.py flush --no-input
 # populate the database (will take a long time)
-python manage.py populate_database --max-metapath-length=3  --reduced-metapaths --batch-size=12000
+python manage.py populate_database --max-metapath-length=3 --reduced-metapaths --batch-size=12000
 # output database information and table summaries
 python manage.py database_info
 ```
 
 Another option to load the database is to import it from the `connectivity-search-pg_dump.sql.gz` database dump,
 which will save time if you are interested in loading the full database (i.e. without `--reduced-metapaths`).
-This 5 GB file is [available on Zenodo](https://doi.org/10.5281/zenodo.3978766 "Node connectivity measurements for Hetionet v1.0 metapaths. Zenodod Version v1.1").
+This 5 GB file is [available on Zenodo](https://doi.org/10.5281/zenodo.3978766 "Node connectivity measurements for Hetionet v1.0 metapaths. Zenodod Version v1.1") (TODO: update [latest database dump](https://github.com/greenelab/connectivity-search-backend/pull/79) to Zenodo).
+
+To load `connectivity-search-pg_dump.sql.gz` into a new database, modify the following command:
+
+```shell
+zcat hetmech-pg_dump.sql.gz | psql --user=dj_hetmech --dbname=connectivity_db --host=HOST
+```
+
+`connectivity-search-pg_dump.sql.gz` was exported from the development Docker database with the command:
+
+```shell
+docker exec connectivity_db \
+  pg_dump \
+  --host=localhost --username=dj_hetmech --dbname=connectivity_db \
+  --create --clean \
+  --compress=8 \
+  > connectivity-search-pg_dump.sql.gz
+```
