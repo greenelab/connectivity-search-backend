@@ -1,0 +1,42 @@
+cff-version: 1.2.0
+title: >-
+  greenelab/connectivity-search-backend repository:
+  Django backend for hetnet connectivity search
+message: >-
+  This citation is for the code repository.
+  To cite Hetnet connectivity search more generally,
+  see the manuscript at <https://greenelab.github.io/connectivity-search-manuscript/>.
+type: software
+authors:
+  - given-names: Daniel
+    family-names: Himmelstein
+    orcid: 'https://orcid.org/0000-0002-3012-7446'
+  - given-names: Dongbo
+    family-names: Hu
+    orcid: 'https://orcid.org/0000-0001-7870-8242'
+  - given-names: Faisal
+    family-names: Alquaddoomi
+    orcid: 'https://orcid.org/0000-0003-4297-8747'
+  - given-names: Casey
+    family-names: Greene
+    orcid: 'https://orcid.org/0000-0001-8713-9213'
+identifiers:
+  - type: swh
+    value: 'swh:1:rev:28d9626d75c5fa78b03ae0cb18b32f90bcf1fe8f'
+    description: Software Heritage Revision Snapshot
+  - type: swh
+    value: 'swh:1:dir:3438157eac00e6b353a806c375d976c7e1760cbf'
+    description: Software Heritage Directory Snapshot
+repository-code: 'https://github.com/greenelab/connectivity-search-backend'
+url: 'https://search-api.het.io'
+repository-artifact: 'https://zenodo.org/record/3978766'
+abstract: Source code for the connectivity search database and API.
+keywords:
+  - django
+  - database
+  - backend
+  - hetio
+  - hetmech
+  - hetnets
+  - hetnet-connectivity-search
+license: BSD-3-Clause
